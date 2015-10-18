@@ -52,8 +52,8 @@ public class BoardDrawer extends JPanel {
         buffer_graphics.fillRect(LEFT_RIGHT_MARGIN, TOP_BOTTOM_MARGIN, BOARD_SIZE, BOARD_SIZE);
 
         // Draw Board Lines
-        buffer_graphics.setColor(Color.black);
-        for (int i = 0; i < 8; i++) {
+        buffer_graphics.setColor(Color.BLACK);
+        for (int i = 1; i < BOARD_ROWS; i++) {
             // Horizontal Lines
             buffer_graphics.drawLine(
                     LEFT_RIGHT_MARGIN,
