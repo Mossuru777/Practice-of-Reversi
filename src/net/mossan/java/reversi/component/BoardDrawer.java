@@ -1,9 +1,12 @@
 package net.mossan.java.reversi.component;
 
+import net.mossan.java.reversi.model.Game;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class BoardDrawer extends JPanel {
+    private static final Color BOARD_BACKGROUND_COLOR = new Color(40, 128, 40);
     private final int CELL_SIZE;
     private final int BOARD_ROWS;
     private final int LEFT_RIGHT_MARGIN;
@@ -11,14 +14,12 @@ public class BoardDrawer extends JPanel {
     private final int BOARD_SIZE;
     private final JFrame window;
 
-    public BoardDrawer(final int board_rows, final int cell_size, final String window_title) {
-        // Arguments Check
-        assert board_rows > 0 && board_rows % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
+    public BoardDrawer(final Game game, final int cell_size, final String window_title) {
         assert cell_size > 0 : "cell size must be greater than 0.";
 
         // Board Settings
         this.CELL_SIZE = cell_size;
-        this.BOARD_ROWS = board_rows;
+        this.BOARD_ROWS = game.getBoard().length;
         this.BOARD_SIZE = CELL_SIZE * BOARD_ROWS;
 
         // Create Window Frame
@@ -39,6 +40,8 @@ public class BoardDrawer extends JPanel {
     }
 
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
         // Create Buffer Image
         Image buffer_image = createImage(this.window.getContentPane().getWidth(), this.window.getContentPane().getHeight());
         Graphics2D buffer_graphics = (Graphics2D) buffer_image.getGraphics();
@@ -48,7 +51,7 @@ public class BoardDrawer extends JPanel {
         buffer_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // Fill Board Background
-        buffer_graphics.setColor(new Color(40, 128, 40));
+        buffer_graphics.setColor(BOARD_BACKGROUND_COLOR);
         buffer_graphics.fillRect(LEFT_RIGHT_MARGIN, TOP_BOTTOM_MARGIN, BOARD_SIZE, BOARD_SIZE);
 
         // Draw Board Lines
