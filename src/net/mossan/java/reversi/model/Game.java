@@ -14,6 +14,17 @@ public class Game {
                 board[i][j] = Disc.NONE;
             }
         }
+        for (int i = board_rows / 2 - 1; i <= board_rows / 2; i++) {
+            int k = i % 2 == 1 ? 0 : 1;
+            for (int j = board_rows / 2 - 1; j <= board_rows / 2; j++) {
+                if (k % 2 == 0) {
+                    board[i][j] = Disc.WHITE;
+                } else {
+                    board[i][j] = Disc.BLACK;
+                }
+                k++;
+            }
+        }
     }
 
     public Disc[][] getBoard() {
