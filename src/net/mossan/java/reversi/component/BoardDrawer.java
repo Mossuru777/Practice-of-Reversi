@@ -5,8 +5,10 @@ import net.mossan.java.reversi.model.Game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class BoardDrawer extends JPanel {
+public class BoardDrawer extends JPanel implements MouseListener {
     private static final Color BOARD_BACKGROUND_COLOR = new Color(40, 128, 40);
     private static final double DISC_DRAW_RATIO = 0.8;
 
@@ -37,6 +39,9 @@ public class BoardDrawer extends JPanel {
         this.window.setBackground(Color.BLACK);
         this.window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setGame(game, cell_size);
+
+        // Enable MouseListener
+        addMouseListener(this);
     }
 
     public void setGame(Game game, int cell_size) {
@@ -140,4 +145,33 @@ public class BoardDrawer extends JPanel {
         // Update last draw board status
         this.lastBoard = drawBoard;
     }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        // Event is triggered when left button is clicked
+        if (drawGame != null && e.getButton() == MouseEvent.BUTTON1) {
+            // Identify clicked cell
+            Point p = e.getPoint();
+            int x = (int) Math.round(p.getX()) - LEFT_RIGHT_MARGIN;
+            int y = (int) Math.round(p.getY()) - TOP_BOTTOM_MARGIN;
+            if (x >= 0 && x <= BOARD_SIZE && y >= 0 && y <= BOARD_SIZE) {
+                int i = x / CELL_SIZE;
+                int j = y / CELL_SIZE;
+
+                System.out.println(i + "," + j + " clicked.");
+            }
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }
