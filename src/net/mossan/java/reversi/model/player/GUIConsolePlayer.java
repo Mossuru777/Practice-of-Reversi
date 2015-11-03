@@ -8,8 +8,8 @@ public class GUIConsolePlayer implements Player, BoardDrawerEventListener {
 
     @Override
     public void setGame(Game game) {
-        if (game != null) {
-            game.removePlayer(this);
+        if (this.game != null) {
+            this.game.removePlayer(this);
         }
         this.game = game;
     }
