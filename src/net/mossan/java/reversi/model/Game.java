@@ -28,6 +28,6 @@ public class Game {
     }
 
     public Disc[][] getBoard() {
-        return this.board;
+        return board.clone();
     }
 }

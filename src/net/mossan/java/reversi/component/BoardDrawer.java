@@ -98,7 +98,7 @@ public class BoardDrawer extends JPanel implements MouseListener {
         for (int i = 0; i < drawBoard.length; i++) {
             for (int j = 0; j < drawBoard.length; j++) {
                 // Disc Color
-                Color discDrawColor = null;
+                Color discDrawColor;
                 switch (drawBoard[i][j]) {
                     case BLACK:
                         discDrawColor = Color.black;
