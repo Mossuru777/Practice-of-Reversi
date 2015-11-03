@@ -1,14 +1,17 @@
 package net.mossan.java.reversi.component;
 
+import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
 import net.mossan.java.reversi.model.Disc;
 import net.mossan.java.reversi.model.Game;
+import net.mossan.java.reversi.model.eventlistener.GameEventListener;
+import net.mossan.java.reversi.model.player.Player;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-public class BoardDrawer extends JPanel implements MouseListener {
+public class BoardDrawer extends JPanel implements MouseListener, GameEventListener {
     private static final Color BOARD_BACKGROUND_COLOR = new Color(40, 128, 40);
     private static final double DISC_DRAW_RATIO = 0.8;
 
@@ -60,6 +63,7 @@ public class BoardDrawer extends JPanel implements MouseListener {
         this.TOP_BOTTOM_MARGIN = (this.window.getContentPane().getHeight() - BOARD_SIZE) / 2;
     }
 
+    @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
@@ -128,14 +132,18 @@ public class BoardDrawer extends JPanel implements MouseListener {
         // Event is triggered when left button is clicked
         if (drawGame != null && e.getButton() == MouseEvent.BUTTON1) {
             // Identify clicked cell
-            Point p = e.getPoint();
-            int x = (int) Math.round(p.getX()) - LEFT_RIGHT_MARGIN;
-            int y = (int) Math.round(p.getY()) - TOP_BOTTOM_MARGIN;
+            Point point = e.getPoint();
+            int x = (int) Math.round(point.getX()) - LEFT_RIGHT_MARGIN;
+            int y = (int) Math.round(point.getY()) - TOP_BOTTOM_MARGIN;
             if (x >= 0 && x <= BOARD_SIZE && y >= 0 && y <= BOARD_SIZE) {
-                int i = x / CELL_SIZE;
-                int j = y / CELL_SIZE;
+                int horizontal = x / CELL_SIZE;
+                int vertical = y / CELL_SIZE;
 
-                System.out.println(i + "," + j + " clicked.");
+                Player currentTurnPlayer = drawGame.getCurrentTurnPlayer();
+                if (currentTurnPlayer instanceof BoardDrawerEventListener) {
+                    ((BoardDrawerEventListener) currentTurnPlayer).cellClicked(horizontal, vertical);
+                }
+                System.out.println(horizontal + "," + vertical + " clicked");
             }
         }
     }
@@ -154,5 +162,15 @@ public class BoardDrawer extends JPanel implements MouseListener {
 
     @Override
     public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void boardUpdated(Game game) {
+        repaint();
+    }
+
+    @Override
+    public void notifyGameResult(Disc disc, Player player) {
+        //TODO implement
     }
 }
