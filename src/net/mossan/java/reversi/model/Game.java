@@ -6,6 +6,7 @@ import net.mossan.java.reversi.model.player.Player;
 import java.util.ArrayList;
 
 public class Game {
+    private static final int[][] PLACEABLE_CELL_SEARCH_MOVE_PATTERNS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
     private final Player[] players;
     private final Disc[][] board;
     private Disc currentTurn;
@@ -40,22 +41,89 @@ public class Game {
         this.eventListeners = new ArrayList<>();
     }
 
-    public boolean placeDisc(Player player, int horizontal, int vertical) {
+    public int[][] getPlaceableDiscs(Player player, int horizontal, int vertical) {
+        if (isGameOver || board[horizontal][vertical] != Disc.NONE) {
+            return new int[0][0];
+        }
+
+        Disc anotherDisc = null;
         for (int i = 0; i < 2; i++) {
             if (players[i].equals(player)) {
                 Disc disc = i == 0 ? Disc.BLACK : Disc.WHITE;
-                if (currentTurn == disc &&
-                        0 <= horizontal && horizontal < board.length && 0 <= vertical && vertical < board.length) {
-                    board[horizontal][vertical] = currentTurn;
-                    currentTurn = currentTurn == Disc.BLACK ? Disc.WHITE : Disc.BLACK;
-                    for (GameEventListener listener : eventListeners) {
-                        listener.boardUpdated(this);
-                    }
-                    return true;
+                if (disc == currentTurn) {
+                    anotherDisc = currentTurn == Disc.BLACK ? Disc.WHITE : Disc.BLACK;
+                }
+                break;
+            }
+        }
+        if (anotherDisc == null) {
+            return new int[0][0];
+        }
+
+        ArrayList<int[]> placeableDiscs = new ArrayList<>(board.length * board.length);
+        ArrayList<int[]> tmpPlaceableDiscs = new ArrayList<>(board.length * board.length);
+        for (int[] pattern : PLACEABLE_CELL_SEARCH_MOVE_PATTERNS) {
+            int h = horizontal + pattern[0], v = vertical + pattern[1];
+            if (h < 0 || h >= board.length || v < 0 || v >= board.length || board[h][v] != anotherDisc) {
+                continue;
+            }
+            tmpPlaceableDiscs.clear();
+            for (; h >= 0 && h < board.length && v >= 0 && v < board.length; h += pattern[0], v += pattern[1]) {
+                if (board[h][v] == anotherDisc) {
+                    tmpPlaceableDiscs.add(new int[]{h, v});
                 } else {
-                    return false;
+                    if (board[h][v] != currentTurn) {
+                        tmpPlaceableDiscs.clear();
+                    }
+                    break;
                 }
             }
+            if (h < 0 || h >= board.length || v < 0 || v >= board.length) {
+                tmpPlaceableDiscs.clear();
+            }
+            placeableDiscs.addAll(tmpPlaceableDiscs);
+        }
+        return placeableDiscs.toArray(new int[0][0]);
+    }
+
+    public boolean placeDisc(Player player, int horizontal, int vertical) {
+        int[][] placeableDiscs = getPlaceableDiscs(player, horizontal, vertical);
+        if (placeableDiscs.length > 0) {
+            //DEBUG output before board to console
+            System.out.println("Before:");
+            outputBoardToConsole();
+
+            // Place Discs
+            board[horizontal][vertical] = currentTurn;
+            for (int[] disc_position : placeableDiscs) {
+                board[disc_position[0]][disc_position[1]] = currentTurn;
+            }
+
+            //DEBUG output after changed board to console
+            System.out.println("After:");
+            outputBoardToConsole();
+
+            // Change Turn
+            boolean turnChanged = false;
+            for (int h = 0; h < board.length; h++) {
+                for (int v = 0; v < board.length; v++) {
+                    if (board[h][v] != Disc.NONE) {
+                        continue;
+                    } else if (getPlaceableDiscs(player, h, v).length > 0) {
+                        turnChanged = true;
+                        break;
+                    }
+                }
+            }
+            if (turnChanged) {
+                currentTurn = currentTurn == Disc.BLACK ? Disc.WHITE : Disc.BLACK;
+            }
+
+            // Board update notify to eventlisteners
+            for (GameEventListener listener : eventListeners) {
+                listener.boardUpdated(this);
+            }
+            return true;
         }
         return false;
     }
@@ -104,6 +172,38 @@ public class Game {
             return players[0];
         } else {
             return players[1];
+        }
+    }
+
+    //DEBUG
+    private void outputBoardToConsole() {
+        System.out.print("-");
+        for (int i = 0; i < board.length; i++) {
+            System.out.print("－-");
+        }
+        System.out.print("\n");
+        for (int v = 0; v < board.length; v++) {
+            System.out.print("|");
+            for (int h = 0; h < board.length; h++) {
+                switch (board[h][v]) {
+                    case NONE:
+                        System.out.print("　");
+                        break;
+                    case BLACK:
+                        System.out.print("○");
+                        break;
+                    case WHITE:
+                        System.out.print("●");
+                        break;
+                }
+                System.out.print("|");
+            }
+            System.out.print("\n");
+            System.out.print("-");
+            for (int i = 0; i < board.length; i++) {
+                System.out.print("－-");
+            }
+            System.out.print("\n");
         }
     }
 }
