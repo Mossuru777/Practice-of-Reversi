@@ -129,6 +129,10 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
 
     @Override
     public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
         // Event is triggered when left button is clicked
         if (drawGame != null && e.getButton() == MouseEvent.BUTTON1) {
             // Identify clicked cell
@@ -146,10 +150,6 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
                 System.out.println(horizontal + "," + vertical + " clicked");
             }
         }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
     }
 
     @Override
