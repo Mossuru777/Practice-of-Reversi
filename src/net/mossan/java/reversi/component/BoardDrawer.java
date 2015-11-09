@@ -166,7 +166,11 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
 
     @Override
     public void boardUpdated(Game game) {
-        repaint();
+        if (drawGame != null && game.equals(drawGame)) {
+            repaint();
+        } else {
+            game.removeEventListener(this);
+        }
     }
 
     @Override
