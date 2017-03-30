@@ -1,9 +1,9 @@
 package net.mossan.java.reversi.component;
 
 import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
-import net.mossan.java.reversi.model.Player;
 import net.mossan.java.reversi.model.DiscType;
 import net.mossan.java.reversi.model.Game;
+import net.mossan.java.reversi.model.Player;
 import net.mossan.java.reversi.model.eventlistener.GameEventListener;
 import net.mossan.java.reversi.model.user.User;
 
@@ -11,10 +11,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 
 public class BoardDrawer extends JPanel implements MouseListener, GameEventListener {
     private static final Color BOARD_BACKGROUND_COLOR = new Color(40, 128, 40);
     private static final double DISC_DRAW_RATIO = 0.8;
+    private static final float PLACEABLE_DISC_DRAW_OPACITY = 0.2f;
 
     private final JFrame window;
 
@@ -125,6 +127,29 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
                 g2.setColor(discDrawColor);
                 g2.fillOval(x, y, DISC_SIZE, DISC_SIZE);
             }
+        }
+
+        // Draw Placeable Discs (Only Current Player)
+        float[] colorValues;
+        switch (drawGame.getCurrentTurnPlayer().type) {
+            case BLACK:
+                colorValues = Color.black.getRGBColorComponents(null);
+                break;
+            case WHITE:
+                colorValues = Color.white.getRGBColorComponents(null);
+                break;
+            default:
+                throw new AssertionError("Unknown DiscType");
+        }
+        g2.setColor(new Color(colorValues[0], colorValues[1], colorValues[2], PLACEABLE_DISC_DRAW_OPACITY));
+        List<List<int[]>> placeableCellsList = drawGame.getCurrentPlayerPlaceableCellsList();
+        for (List<int[]> placeableCells : placeableCellsList) {
+            // Calculate Draw Position
+            int x = LEFT_RIGHT_MARGIN + (CELL_SIZE * placeableCells.get(0)[0]) + DISC_DRAW_MARGIN_IN_CELL;
+            int y = TOP_BOTTOM_MARGIN + (CELL_SIZE * placeableCells.get(0)[1]) + DISC_DRAW_MARGIN_IN_CELL;
+
+            // Draw Player Disc
+            g2.fillOval(x, y, DISC_SIZE, DISC_SIZE);
         }
     }
 

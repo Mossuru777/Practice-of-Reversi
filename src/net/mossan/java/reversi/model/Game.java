@@ -43,6 +43,10 @@ public class Game {
         this.eventListeners = new ArrayList<>();
     }
 
+    public List<List<int[]>> getCurrentPlayerPlaceableCellsList() {
+        return getPlaceableCellsList(currentTurnPlayer);
+    }
+
     private List<List<int[]>> getPlaceableCellsList(Player player) {
         if (isGameOver) {
             return new ArrayList<>(0);
