@@ -2,9 +2,7 @@ import net.mossan.java.reversi.component.BoardDrawer;
 import net.mossan.java.reversi.model.Game;
 import net.mossan.java.reversi.model.user.GUIConsoleUser;
 
-import javax.swing.*;
-
-public class Reversi extends JPanel {
+public class Reversi {
     // Two gui console user
     private static final GUIConsoleUser USER1 = new GUIConsoleUser();
     private static final GUIConsoleUser USER2 = new GUIConsoleUser();
