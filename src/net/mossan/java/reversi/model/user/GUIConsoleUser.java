@@ -1,21 +1,21 @@
-package net.mossan.java.reversi.model.player;
+package net.mossan.java.reversi.model.user;
 
 import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
 import net.mossan.java.reversi.model.Game;
 
-public class GUIConsolePlayer implements Player, BoardDrawerEventListener {
+public class GUIConsoleUser implements User, BoardDrawerEventListener {
     private Game game;
 
     @Override
     public void setGame(Game game) {
         if (this.game != null) {
-            this.game.removePlayer(this);
+            this.game.removeUser(this);
         }
         this.game = game;
     }
 
     @Override
     public void cellClicked(int horizontal, int vertical) {
-        game.placeDisc(this, horizontal, vertical);
+        boolean placed = game.placeDisc(this, horizontal, vertical);
     }
 }

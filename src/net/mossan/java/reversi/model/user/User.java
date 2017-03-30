@@ -1,7 +1,7 @@
-package net.mossan.java.reversi.model.player;
+package net.mossan.java.reversi.model.user;
 
 import net.mossan.java.reversi.model.Game;
 
-public interface Player {
+public interface User {
     void setGame(Game game);
 }

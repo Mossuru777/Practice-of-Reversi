@@ -1,10 +1,11 @@
 package net.mossan.java.reversi.component;
 
 import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
-import net.mossan.java.reversi.model.Disc;
+import net.mossan.java.reversi.model.Player;
+import net.mossan.java.reversi.model.DiscType;
 import net.mossan.java.reversi.model.Game;
 import net.mossan.java.reversi.model.eventlistener.GameEventListener;
-import net.mossan.java.reversi.model.player.Player;
+import net.mossan.java.reversi.model.user.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +46,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
         this.window.setVisible(true);
     }
 
-    public void setGame(Game game, int cell_size) {
+    private void setGame(Game game, int cell_size) {
         // Board Settings
         this.drawGame = game;
         this.BOARD_ROWS = game.getBoard().length;
@@ -67,7 +68,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        Disc[][] drawBoard = drawGame.getBoard();
+        DiscType[][] drawBoard = drawGame.getBoard();
         Graphics2D g2 = (Graphics2D) g;
 
         // Set Rendering Options
@@ -101,7 +102,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
         // Draw Discs
         for (int i = 0; i < drawBoard.length; i++) {
             for (int j = 0; j < drawBoard.length; j++) {
-                // Disc Color
+                // Determine Player Disc Color
                 Color discDrawColor;
                 switch (drawBoard[i][j]) {
                     case BLACK:
@@ -120,7 +121,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
                 int x = LEFT_RIGHT_MARGIN + (CELL_SIZE * i) + DISC_DRAW_MARGIN_IN_CELL;
                 int y = TOP_BOTTOM_MARGIN + (CELL_SIZE * j) + DISC_DRAW_MARGIN_IN_CELL;
 
-                // Draw Disc
+                // Draw Player Disc
                 g2.setColor(discDrawColor);
                 g2.fillOval(x, y, DISC_SIZE, DISC_SIZE);
             }
@@ -143,9 +144,9 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
                 int horizontal = x / CELL_SIZE;
                 int vertical = y / CELL_SIZE;
 
-                Player currentTurnPlayer = drawGame.getCurrentTurnPlayer();
-                if (currentTurnPlayer instanceof BoardDrawerEventListener) {
-                    ((BoardDrawerEventListener) currentTurnPlayer).cellClicked(horizontal, vertical);
+                User currentTurnUser = drawGame.getCurrentTurnPlayer().user.get();
+                if (currentTurnUser instanceof BoardDrawerEventListener) {
+                    ((BoardDrawerEventListener) currentTurnUser).cellClicked(horizontal, vertical);
                 }
                 System.out.println(horizontal + "," + vertical + " clicked");
             }
@@ -174,7 +175,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     }
 
     @Override
-    public void notifyGameResult(Disc disc, Player player) {
+    public void notifyGameResult(Player winner) {
         //TODO implement
     }
 }

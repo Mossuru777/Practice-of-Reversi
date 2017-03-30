@@ -1,6 +1,6 @@
 import net.mossan.java.reversi.component.BoardDrawer;
 import net.mossan.java.reversi.model.Game;
-import net.mossan.java.reversi.model.player.GUIConsolePlayer;
+import net.mossan.java.reversi.model.user.GUIConsoleUser;
 
 import javax.swing.*;
 
@@ -11,10 +11,10 @@ public class Reversi extends JPanel {
         BoardDrawer board = new BoardDrawer(game, 50, "Reversi");
         game.addEventListener(board);
 
-        // Two gui console player
-        GUIConsolePlayer player1 = new GUIConsolePlayer();
-        GUIConsolePlayer player2 = new GUIConsolePlayer();
-        game.addPlayer(player1);
-        game.addPlayer(player2);
+        // Two gui console user
+        GUIConsoleUser player1 = new GUIConsoleUser();
+        GUIConsoleUser player2 = new GUIConsoleUser();
+        game.addUser(player1);
+        game.addUser(player2);
     }
 }

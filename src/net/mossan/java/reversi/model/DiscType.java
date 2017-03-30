@@ -1,6 +1,6 @@
 package net.mossan.java.reversi.model;
 
-public enum Disc {
+public enum DiscType {
     NONE,
     BLACK,
     WHITE
