@@ -171,7 +171,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
 
                 User currentTurnUser = drawGame.getCurrentTurnPlayer().user.get();
                 if (currentTurnUser instanceof BoardDrawerEventListener) {
-                    ((BoardDrawerEventListener) currentTurnUser).cellClicked(horizontal, vertical);
+                    ((BoardDrawerEventListener) currentTurnUser).cellSelected(horizontal, vertical);
                 }
                 System.out.println(horizontal + "," + vertical + " clicked");
             }

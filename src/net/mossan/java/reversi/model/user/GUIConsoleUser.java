@@ -15,7 +15,7 @@ public class GUIConsoleUser implements User, BoardDrawerEventListener {
     }
 
     @Override
-    public void cellClicked(int horizontal, int vertical) {
+    public void cellSelected(int horizontal, int vertical) {
         boolean placed = game.placeDisc(this, horizontal, vertical);
     }
 }
