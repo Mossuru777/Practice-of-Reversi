@@ -138,7 +138,7 @@ public class Game {
                     }
                     Player winner = players[discCount[0] > discCount[1] ? 0 : 1];
                     for (GameEventListener gameEventListener : eventListeners) {
-                        gameEventListener.notifyGameResult(winner);
+                        gameEventListener.notifyGameResult(this, winner);
                     }
 
                     //DEBUG output game over message to console

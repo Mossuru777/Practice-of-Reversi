@@ -8,5 +8,5 @@ import java.util.EventListener;
 public interface GameEventListener extends EventListener {
     void boardUpdated(Game game);
 
-    void notifyGameResult(Player winner);
+    void notifyGameResult(Game game, Player winner);
 }

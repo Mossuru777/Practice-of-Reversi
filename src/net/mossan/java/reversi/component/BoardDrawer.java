@@ -200,7 +200,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     }
 
     @Override
-    public void notifyGameResult(Player winner) {
+    public void notifyGameResult(Game game, Player winner) {
         //TODO implement
     }
 }
