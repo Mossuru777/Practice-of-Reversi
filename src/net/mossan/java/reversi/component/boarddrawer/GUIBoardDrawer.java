@@ -1,4 +1,4 @@
-package net.mossan.java.reversi.component;
+package net.mossan.java.reversi.component.boarddrawer;
 
 import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
 import net.mossan.java.reversi.model.DiscType;
@@ -13,7 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
 
-public class BoardDrawer extends JPanel implements MouseListener, GameEventListener {
+public class GUIBoardDrawer extends JPanel implements MouseListener, GameEventListener {
     private static final Color BOARD_BACKGROUND_COLOR = new Color(40, 128, 40);
     private static final double DISC_DRAW_RATIO = 0.8;
     private static final float PLACEABLE_DISC_DRAW_OPACITY = 0.2f;
@@ -29,7 +29,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     private int BOARD_SIZE;
     private Game drawGame;
 
-    public BoardDrawer(Game game, int cell_size, String window_title) {
+    public GUIBoardDrawer(Game game, int cell_size, String window_title) {
         assert cell_size > 0 : "cell size must be greater than 0.";
 
         // Panel Settings
@@ -165,7 +165,6 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
                 if (currentTurnUser instanceof BoardDrawerEventListener) {
                     ((BoardDrawerEventListener) currentTurnUser).cellSelected(horizontal, vertical);
                 }
-                System.out.println(horizontal + "," + vertical + " clicked");
             }
         }
     }
@@ -183,7 +182,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     }
 
     @Override
-    public void boardUpdated(Game game) {
+    public void boardUpdated(Game game, DiscType[][] beforeBoard, DiscType[][] afterBoard, Player currentTurnPlayer, boolean isOtherPlayerSkipped) {
         if (drawGame != null && game.equals(drawGame)) {
             repaint();
         } else {
@@ -192,7 +191,7 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
     }
 
     @Override
-    public void notifyGameResult(Game game, Player winner) {
+    public void notifyGameResult(Game game, DiscType[][] beforeBoard, DiscType[][] afterBoard, Player winner) {
         //TODO implement
     }
 }

@@ -101,26 +101,19 @@ public class Game {
         List<List<int[]>> placeableCellsList = getPlaceableCellsList(currentTurnPlayer);
         for (List<int[]> placeableCells : placeableCellsList) {
             if (horizontal == placeableCells.get(0)[0] && vertical == placeableCells.get(0)[1]) {
-                //DEBUG output before board to console
-                System.out.println("Before:");
-                outputBoardToConsole();
+                // Save current board
+                DiscType[][] beforeBoard = getBoard();
 
                 // Place Discs
                 for (int[] disc_position : placeableCells) {
                     board[disc_position[0]][disc_position[1]] = currentTurnPlayer.type;
                 }
 
-                //DEBUG output after changed board to console
-                System.out.println("After:");
-                outputBoardToConsole();
-
                 // Determine turn change and game over
+                boolean isSkippedPlayer = false;
                 Player anotherPlayer = currentTurnPlayer.equals(players[0]) ? players[1] : players[0];
                 if (getPlaceableCellsList(anotherPlayer).size() > 0) {
                     currentTurnPlayer = anotherPlayer;
-
-                    //DEBUG output turn change message to console
-                    System.out.println("Next Turn: " + currentTurnPlayer.type.name());
                 } else if (getPlaceableCellsList(currentTurnPlayer).size() == 0) {
                     isGameOver = true;
 
@@ -137,19 +130,15 @@ public class Game {
                     }
                     Player winner = players[discCount[0] > discCount[1] ? 0 : 1];
                     for (GameEventListener gameEventListener : eventListeners) {
-                        gameEventListener.notifyGameResult(this, winner);
+                        gameEventListener.notifyGameResult(this, beforeBoard, getBoard(), winner);
                     }
-
-                    //DEBUG output game over message to console
-                    System.out.println("Game Over");
                 } else {
-                    //DEBUG output no turn change message to console
-                    System.out.println("Next Turn: " + currentTurnPlayer.type.name() + "  (Skipped: " + currentTurnPlayer.type.otherDiscType().name() + ")");
+                    isSkippedPlayer = true;
                 }
 
                 // Board update notify to event listeners
                 for (GameEventListener listener : eventListeners) {
-                    listener.boardUpdated(this);
+                    listener.boardUpdated(this, beforeBoard, getBoard(), currentTurnPlayer, isSkippedPlayer);
                 }
                 return true;
             }
@@ -190,7 +179,12 @@ public class Game {
     }
 
     public DiscType[][] getBoard() {
-        return board.clone();
+        DiscType[][] cloneBoard = new DiscType[board.length][board.length];
+        for (int i = 0; i < board.length; i++) {
+            System.arraycopy(board[i], 0, cloneBoard[i], 0, board.length);
+        }
+
+        return cloneBoard;
     }
 
     public Player getCurrentTurnPlayer() {
@@ -208,33 +202,5 @@ public class Game {
         }
 
         return player;
-    }
-
-    //DEBUG
-    private void outputBoardToConsole() {
-        System.out.print("-");
-        for (int i = 0; i < board.length; i++) {
-            System.out.print("－-");
-        }
-        System.out.print("\n");
-        for (int v = 0; v < board.length; v++) {
-            System.out.print("|");
-            for (int h = 0; h < board.length; h++) {
-                if (board[h][v] == DiscType.BLACK) {
-                    System.out.print("○");
-                } else if (board[h][v] == DiscType.WHITE) {
-                    System.out.print("●");
-                } else {
-                    System.out.print("　");
-                }
-                System.out.print("|");
-            }
-            System.out.print("\n");
-            System.out.print("-");
-            for (int i = 0; i < board.length; i++) {
-                System.out.print("－-");
-            }
-            System.out.print("\n");
-        }
     }
 }
