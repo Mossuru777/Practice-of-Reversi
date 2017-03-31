@@ -23,7 +23,7 @@ public class Game {
         this.board = new DiscType[board_rows][board_rows];
         for (int i = 0; i < board_rows; i++) {
             for (int j = 0; j < board_rows; j++) {
-                board[i][j] = DiscType.NONE;
+                board[i][j] = null;
             }
         }
         for (int i = board_rows / 2 - 1; i <= board_rows / 2; i++) {
@@ -57,7 +57,7 @@ public class Game {
         List<List<int[]>> placeableDiscs = new ArrayList<>(board.length * board.length);
         for (int base_h = 0; base_h < board.length; base_h++) {
             for (int base_v = 0; base_v < board.length; base_v++) {
-                if (board[base_h][base_v] != DiscType.NONE) {
+                if (board[base_h][base_v] != null) {
                     continue;
                 }
                 List<int[]> basePlaceableDiscs = new ArrayList<>(board.length * board.length);
@@ -72,7 +72,7 @@ public class Game {
                         if (board[h][v] == anotherPlayer.type) {
                             tmpPlaceableDiscs.add(new int[]{h, v});
                         } else {
-                            if (board[h][v] == DiscType.NONE) {
+                            if (board[h][v] == null) {
                                 tmpPlaceableDiscs.clear();
                             }
                             break;
@@ -223,16 +223,12 @@ public class Game {
         for (int v = 0; v < board.length; v++) {
             System.out.print("|");
             for (int h = 0; h < board.length; h++) {
-                switch (board[h][v]) {
-                    case NONE:
-                        System.out.print("　");
-                        break;
-                    case BLACK:
-                        System.out.print("○");
-                        break;
-                    case WHITE:
-                        System.out.print("●");
-                        break;
+                if (board[h][v] == DiscType.BLACK) {
+                    System.out.print("○");
+                } else if (board[h][v] == DiscType.WHITE) {
+                    System.out.print("●");
+                } else {
+                    System.out.print("　");
                 }
                 System.out.print("|");
             }

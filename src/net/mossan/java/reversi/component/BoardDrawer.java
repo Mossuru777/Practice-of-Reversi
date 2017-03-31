@@ -106,17 +106,12 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
             for (int j = 0; j < drawBoard.length; j++) {
                 // Determine Player Disc Color
                 Color discDrawColor;
-                switch (drawBoard[i][j]) {
-                    case BLACK:
-                        discDrawColor = Color.black;
-                        break;
-                    case WHITE:
-                        discDrawColor = Color.white;
-                        break;
-                    case NONE:
-                    default:
-                        discDrawColor = BOARD_BACKGROUND_COLOR;
-                        break;
+                if (drawBoard[i][j] == DiscType.BLACK) {
+                    discDrawColor = Color.black;
+                } else if (drawBoard[i][j] == DiscType.WHITE) {
+                    discDrawColor = Color.white;
+                } else {
+                    discDrawColor = BOARD_BACKGROUND_COLOR;
                 }
 
                 // Calculate Draw Position
@@ -131,15 +126,12 @@ public class BoardDrawer extends JPanel implements MouseListener, GameEventListe
 
         // Draw Placeable Discs (Only Current Player)
         float[] colorValues;
-        switch (drawGame.getCurrentTurnPlayer().type) {
-            case BLACK:
-                colorValues = Color.black.getRGBColorComponents(null);
-                break;
-            case WHITE:
-                colorValues = Color.white.getRGBColorComponents(null);
-                break;
-            default:
-                throw new AssertionError("Unknown DiscType");
+        if (drawGame.getCurrentTurnPlayer().type == DiscType.BLACK) {
+            colorValues = Color.black.getRGBColorComponents(null);
+        } else if (drawGame.getCurrentTurnPlayer().type == DiscType.WHITE) {
+            colorValues = Color.white.getRGBColorComponents(null);
+        } else {
+            throw new AssertionError("Unknown DiscType");
         }
         g2.setColor(new Color(colorValues[0], colorValues[1], colorValues[2], PLACEABLE_DISC_DRAW_OPACITY));
         List<List<int[]>> placeableCellsList = drawGame.getCurrentPlayerPlaceableCellsList();

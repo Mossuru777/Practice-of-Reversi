@@ -9,7 +9,6 @@ public final class Player {
     public WeakReference<User> user = new WeakReference<>(null);
 
     Player(DiscType type) {
-        assert type == DiscType.BLACK || type == DiscType.WHITE : "\"type\" can set only BLACK or WHITE.";
         this.type = type;
     }
 }
