@@ -120,8 +120,7 @@ public class Game {
                     currentTurnPlayer = anotherPlayer;
 
                     //DEBUG output turn change message to console
-                    String disc_name = currentTurnPlayer.type == DiscType.BLACK ? "BLACK" : "WHITE";
-                    System.out.println("Next Turn: " + disc_name);
+                    System.out.println("Next Turn: " + currentTurnPlayer.type.name());
                 } else if (getPlaceableCellsList(currentTurnPlayer).size() == 0) {
                     isGameOver = true;
 
@@ -145,9 +144,7 @@ public class Game {
                     System.out.println("Game Over");
                 } else {
                     //DEBUG output no turn change message to console
-                    String disc_name = currentTurnPlayer.type == DiscType.BLACK ? "BLACK" : "WHITE";
-                    String another_disc_name = currentTurnPlayer.type == DiscType.BLACK ? "WHITE" : "BLACK";
-                    System.out.println("Next Turn: " + disc_name + "  (Skipped: " + another_disc_name + ")");
+                    System.out.println("Next Turn: " + currentTurnPlayer.type.name() + "  (Skipped: " + currentTurnPlayer.type.otherDiscType().name() + ")");
                 }
 
                 // Board update notify to event listeners
