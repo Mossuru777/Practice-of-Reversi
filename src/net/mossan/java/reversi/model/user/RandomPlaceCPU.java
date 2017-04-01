@@ -5,7 +5,7 @@ import net.mossan.java.reversi.model.DiscType;
 import java.security.SecureRandom;
 import java.util.List;
 
-public class RandomPlaceUser extends User {
+public class RandomPlaceCPU extends User {
     private SecureRandom random = new SecureRandom();
 
     @Override
