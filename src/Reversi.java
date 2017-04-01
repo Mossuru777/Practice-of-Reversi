@@ -2,11 +2,11 @@ import net.mossan.java.reversi.component.boarddrawer.ConsoleBoardDrawer;
 import net.mossan.java.reversi.component.boarddrawer.GUIBoardDrawer;
 import net.mossan.java.reversi.model.Game;
 import net.mossan.java.reversi.model.user.GUIConsoleUser;
+import net.mossan.java.reversi.model.user.RandomPlaceUser;
 
 public class Reversi {
-    // Two gui console user
-    private static final GUIConsoleUser USER1 = new GUIConsoleUser();
-    private static final GUIConsoleUser USER2 = new GUIConsoleUser();
+    private static final GUIConsoleUser CONSOLE_USER = new GUIConsoleUser();
+    private static final RandomPlaceUser RANDOM_PLACE_USER = new RandomPlaceUser();
 
     public static void main(String[] args) {
         // 8x8, 50px x 50px per cell, "Reversi" window title
@@ -17,8 +17,8 @@ public class Reversi {
 
         ConsoleBoardDrawer consoleBoardDrawer = new ConsoleBoardDrawer(game);
         game.addEventListener(consoleBoardDrawer);
-        
-        game.addUser(USER1);
-        game.addUser(USER2);
+
+        game.addUser(CONSOLE_USER);
+        game.addUser(RANDOM_PLACE_USER);
     }
 }

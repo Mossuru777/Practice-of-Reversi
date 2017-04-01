@@ -1,17 +1,14 @@
 package net.mossan.java.reversi.model.user;
 
 import net.mossan.java.reversi.component.eventlistener.BoardDrawerEventListener;
-import net.mossan.java.reversi.model.Game;
+import net.mossan.java.reversi.model.DiscType;
 
-public class GUIConsoleUser implements User, BoardDrawerEventListener {
-    private Game game;
+import java.util.List;
 
+public class GUIConsoleUser extends User implements BoardDrawerEventListener {
     @Override
-    public void setGame(Game game) {
-        if (this.game != null) {
-            this.game.removeUser(this);
-        }
-        this.game = game;
+    public void notifyTurn(DiscType[][] board, List<List<int[]>> placeableCellList, boolean isOtherPlayerSkipped) {
+        // ignore
     }
 
     @Override

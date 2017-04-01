@@ -93,8 +93,8 @@ public class Game {
         return placeableDiscs;
     }
 
-    public boolean placeDisc(User user, int horizontal, int vertical) {
-        if (!determinePlayerFromUser(user).equals(currentTurnPlayer)) {
+    public boolean placeDisc(User placeUser, int horizontal, int vertical) {
+        if (!determinePlayerFromUser(placeUser).equals(currentTurnPlayer)) {
             return false;
         }
 
@@ -140,6 +140,12 @@ public class Game {
                 for (GameEventListener listener : eventListeners) {
                     listener.boardUpdated(this, beforeBoard, getBoard(), currentTurnPlayer, isSkippedPlayer);
                 }
+                if (!isGameOver) {
+                    User currentTurnUser = currentTurnPlayer.user.get();
+                    if (currentTurnUser != null) {
+                        currentTurnUser.notifyTurn(getBoard(), getCurrentPlayerPlaceableCellsList(), isSkippedPlayer);
+                    }
+                }
                 return true;
             }
         }
@@ -152,6 +158,9 @@ public class Game {
                 if (players[i].user.get() == null) {
                     players[i].user = new WeakReference<>(user);
                     user.setGame(this);
+                    if (currentTurnPlayer.equals(players[i])) {
+                        user.notifyTurn(getBoard(), getCurrentPlayerPlaceableCellsList(), false);
+                    }
                     return true;
                 }
             }
