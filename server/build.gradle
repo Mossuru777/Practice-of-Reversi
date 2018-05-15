@@ -1,4 +1,5 @@
 dependencies {
+    compile 'org.slf4j:slf4j-nop:1.7.25'
     compile 'com.corundumstudio.socketio:netty-socketio:1.7.14'
 }
 
