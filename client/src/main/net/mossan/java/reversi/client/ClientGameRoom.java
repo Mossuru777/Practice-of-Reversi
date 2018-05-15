@@ -42,7 +42,8 @@ public class ClientGameRoom {
                         e.printStackTrace();
                         this.notifyAll();
                     }
-                });
+                })
+                .on(Socket.EVENT_DISCONNECT, args -> System.out.println("*** Room Leaved. ***"));
         this.nameSpaceSocket.open();
     }
 
@@ -51,6 +52,13 @@ public class ClientGameRoom {
         synchronized (instance.boardDrawer) {
             try {
                 instance.boardDrawer.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }
+        instance.nameSpaceSocket.close();
+        while (instance.nameSpaceSocket.connected()) {
+            try {
+                Thread.sleep(100);
             } catch (InterruptedException ignore) {
             }
         }
