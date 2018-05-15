@@ -22,7 +22,10 @@ public class ReversiServer {
 
     private SocketIOServer socket;
 
-    @Option(name = "-p", aliases = {"--port"}, usage = "listen port")
+    @Option(name = "-h", aliases = {"--host"}, usage = "listen hostname")
+    private String hostname = "localhost";
+
+    @Option(name = "-p", aliases = {"--port"}, usage = "listen tcp port")
     private int port = 50000;
 
     private ReversiServer() {
@@ -45,6 +48,7 @@ public class ReversiServer {
 
     private void execute() {
         Configuration configuration = new Configuration();
+        configuration.setHostname(this.hostname);
         configuration.setPort(this.port);
         this.socket = new SocketIOServer(configuration);
 
