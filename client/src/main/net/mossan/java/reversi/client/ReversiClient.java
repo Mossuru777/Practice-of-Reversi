@@ -164,13 +164,7 @@ public class ReversiClient {
         }
 
         final Socket nameSpaceSocket = IO.socket(this.url.resolve(String.format("/%s", selectNameSpace)));
-        final ClientGameRoom instance = new ClientGameRoom(nameSpaceSocket, boardDrawerType, scanner);
-        synchronized (instance) {
-            try {
-                instance.wait();
-            } catch (InterruptedException ignore) {
-            }
-        }
+        ClientGameRoom.executeAndWait(nameSpaceSocket, boardDrawerType, scanner);
     }
 
     private void disconnect() {

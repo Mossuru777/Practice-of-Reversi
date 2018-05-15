@@ -1,6 +1,5 @@
 package net.mossan.java.reversi.client.boarddrawer;
 
-import net.mossan.java.reversi.client.ClientGameRoom;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
@@ -14,13 +13,11 @@ import java.util.function.Consumer;
 
 public class ConsoleBoardDrawer implements BoardDrawerBase {
     private final Scanner scanner;
-    private final ClientGameRoom clientGameRoom;
 
     private DiscType[][] currentBoard = null;
 
-    public ConsoleBoardDrawer(Scanner scanner, ClientGameRoom clientGameRoom) {
+    public ConsoleBoardDrawer(Scanner scanner) {
         this.scanner = scanner;
-        this.clientGameRoom = clientGameRoom;
     }
 
     private static String getDiscMarkString(@Nullable DiscType discType) {
@@ -85,8 +82,8 @@ public class ConsoleBoardDrawer implements BoardDrawerBase {
             System.out.print("Press enter to back to menu... ");
             this.scanner.nextLine();
 
-            synchronized (this.clientGameRoom) {
-                this.clientGameRoom.notifyAll();
+            synchronized (this) {
+                this.notifyAll();
             }
         }
 

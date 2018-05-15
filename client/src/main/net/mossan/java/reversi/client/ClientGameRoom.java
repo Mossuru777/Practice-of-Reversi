@@ -20,14 +20,14 @@ public class ClientGameRoom {
     private BoardDrawerBase boardDrawer;
     private Game game = null;
 
-    ClientGameRoom(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Scanner scanner) {
+    private ClientGameRoom(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Scanner scanner) {
         this.nameSpaceSocket = nameSpaceSocket;
         switch (boardDrawerType) {
             case GUI:
-                this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString(), this);
+                this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString());
                 break;
             case CUI:
-                this.boardDrawer = new ConsoleBoardDrawer(scanner, this);
+                this.boardDrawer = new ConsoleBoardDrawer(scanner);
                 break;
         }
 
@@ -44,6 +44,16 @@ public class ClientGameRoom {
                     }
                 });
         this.nameSpaceSocket.open();
+    }
+
+    public static void executeAndWait(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Scanner scanner) {
+        final ClientGameRoom instance = new ClientGameRoom(nameSpaceSocket, boardDrawerType, scanner);
+        synchronized (instance.boardDrawer) {
+            try {
+                instance.boardDrawer.wait();
+            } catch (InterruptedException ignore) {
+            }
+        }
     }
 
     private void updateState(GameState state) {

@@ -1,6 +1,5 @@
 package net.mossan.java.reversi.client.boarddrawer;
 
-import net.mossan.java.reversi.client.ClientGameRoom;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
@@ -21,7 +20,6 @@ public class GUIBoardDrawer extends JPanel implements MouseListener, BoardDrawer
 
     private final int cellSize;
     private final String windowTitle;
-    private final ClientGameRoom clientGameRoom;
 
     private JFrame window = null;
     private int discSize;
@@ -32,7 +30,7 @@ public class GUIBoardDrawer extends JPanel implements MouseListener, BoardDrawer
     private @Nullable Game drawGame = null;
     private @Nullable Consumer<PlaceableCell> placeCell = null;
 
-    public GUIBoardDrawer(int cellSize, String windowTitle, ClientGameRoom clientGameRoom) {
+    public GUIBoardDrawer(int cellSize, String windowTitle) {
         assert cellSize > 0 : "cell size must be greater than 0.";
 
         // Panel Settings
@@ -41,7 +39,6 @@ public class GUIBoardDrawer extends JPanel implements MouseListener, BoardDrawer
 
         this.cellSize = cellSize;
         this.windowTitle = windowTitle;
-        this.clientGameRoom = clientGameRoom;
     }
 
     @Override
@@ -184,8 +181,8 @@ public class GUIBoardDrawer extends JPanel implements MouseListener, BoardDrawer
         this.window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.window.addWindowListener(new WindowAdapter() {
             public void windowClosed(WindowEvent e) {
-                synchronized (GUIBoardDrawer.this.clientGameRoom) {
-                    GUIBoardDrawer.this.clientGameRoom.notifyAll();
+                synchronized (GUIBoardDrawer.this) {
+                    GUIBoardDrawer.this.notifyAll();
                 }
             }
         });
