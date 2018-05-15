@@ -1,0 +1,54 @@
+allprojects {
+    version '1.0-SNAPSHOT'
+
+    repositories {
+        jcenter()
+    }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.4"
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    dependencies {
+        compile 'org.jetbrains:annotations:16.0.1'
+        compile 'org.json:json:20180130'
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src/main']
+            }
+        }
+
+        test {
+            java {
+                srcDirs = ['src/test']
+            }
+        }
+    }
+}
+
+configure([project(':server'), project(':client')]) {
+    apply plugin: 'application'
+    apply plugin: "com.github.johnrengelman.shadow"
+
+    dependencies {
+        compile project(':common')
+        compile 'args4j:args4j:2.33'
+    }
+}
