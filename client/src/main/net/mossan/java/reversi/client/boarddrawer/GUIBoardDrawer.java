@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
 
@@ -181,9 +182,11 @@ public class GUIBoardDrawer extends JPanel implements MouseListener, BoardDrawer
         this.window.setResizable(false);
         this.window.setTitle(this.windowTitle);
         this.window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        this.window.addWindowStateListener(e -> {
-            if (e.getNewState() == WindowEvent.WINDOW_CLOSED) {
-                this.clientGameRoom.notifyAll();
+        this.window.addWindowListener(new WindowAdapter() {
+            public void windowClosed(WindowEvent e) {
+                synchronized (GUIBoardDrawer.this.clientGameRoom) {
+                    GUIBoardDrawer.this.clientGameRoom.notifyAll();
+                }
             }
         });
         this.window.getContentPane().setBackground(Color.black);
