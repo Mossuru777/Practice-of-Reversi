@@ -17,18 +17,15 @@ import java.util.Scanner;
 
 public class ClientGameRoom {
     private final Socket nameSpaceSocket;
-    private BoardDrawerBase boardDrawer;
+    private final BoardDrawerBase boardDrawer;
     private Game game = null;
 
     private ClientGameRoom(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Scanner scanner) {
         this.nameSpaceSocket = nameSpaceSocket;
-        switch (boardDrawerType) {
-            case GUI:
-                this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString());
-                break;
-            case CUI:
-                this.boardDrawer = new ConsoleBoardDrawer(scanner);
-                break;
+        if (boardDrawerType == BoardDrawerType.GUI) {
+            this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString());
+        } else {
+            this.boardDrawer = new ConsoleBoardDrawer(scanner);
         }
 
         this.nameSpaceSocket
