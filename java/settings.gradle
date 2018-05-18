@@ -1,0 +1,5 @@
+rootProject.name = 'Practice-of-Reversi'
+
+include("common")
+include("server")
+include("client")
