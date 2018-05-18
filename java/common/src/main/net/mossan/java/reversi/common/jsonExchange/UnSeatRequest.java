@@ -4,14 +4,14 @@ import net.mossan.java.reversi.common.model.DiscType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SeatReservation implements JSONSerializable {
+public class UnSeatRequest implements JSONSerializable {
     public final DiscType discType;
 
-    public SeatReservation(DiscType discType) {
+    public UnSeatRequest(DiscType discType) {
         this.discType = discType;
     }
 
-    public SeatReservation(JSONObject o) throws JSONException {
+    public UnSeatRequest(JSONObject o) {
         this.discType = DiscType.fromInt(o.getInt("discType"));
     }
 
@@ -19,7 +19,7 @@ public class SeatReservation implements JSONSerializable {
     public JSONObject toJSONObject() throws JSONException {
         return new JSONObject() {
             {
-                this.put("discType", SeatReservation.this.discType.getInt());
+                this.put("discType", UnSeatRequest.this.discType.getInt());
             }
         };
     }

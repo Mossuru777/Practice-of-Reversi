@@ -19,9 +19,10 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class ReversiClient {
-    private final Scanner scanner;
+    private final Supplier<Scanner> scannerSupplier;
 
     private Socket socket;
     private ServerState serverState;
@@ -33,13 +34,13 @@ public class ReversiClient {
     @Option(name = "-d", aliases = {"--drawer"}, usage = "board drawer type")
     private BoardDrawerType boardDrawerType = BoardDrawerType.GUI;
 
-    private ReversiClient(Scanner scanner) {
-        this.scanner = scanner;
+    private ReversiClient(Supplier<Scanner> scannerSupplier) {
+        this.scannerSupplier = scannerSupplier;
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(System.in)));
-        ReversiClient client = new ReversiClient(scanner);
+        Supplier<Scanner> scannerSupplier = () -> new Scanner(new BufferedReader(new InputStreamReader(System.in)));
+        ReversiClient client = new ReversiClient(scannerSupplier);
         CmdLineParser parser = new CmdLineParser(client);
         try {
             parser.parseArgument(args);
@@ -91,8 +92,10 @@ public class ReversiClient {
             System.out.println();
             System.out.print("> ");
 
-            final int action = this.scanner.nextInt();
-            this.scanner.nextLine();
+            Scanner scanner = this.scannerSupplier.get();
+            final int action = scanner.nextInt();
+            scanner.nextLine();
+
             System.out.println();
             switch (action) {
                 case 1:
@@ -136,6 +139,7 @@ public class ReversiClient {
 
         if (pause) {
             System.out.println("Press enter to continue...");
+            Scanner scanner = this.scannerSupplier.get();
             scanner.nextLine();
         } else {
             System.out.println();
@@ -148,14 +152,15 @@ public class ReversiClient {
     }
 
     private void enterRoom() {
+        Scanner scanner = this.scannerSupplier.get();
         String selectNameSpace = null;
         while (selectNameSpace == null) {
             System.out.println("*** Select Room Number. (-1 to return menu.) ***");
             String[] nameSpaceArray = this.displayRoomList(false);
             System.out.print("> ");
 
-            int select = this.scanner.nextInt();
-            this.scanner.nextLine();
+            int select = scanner.nextInt();
+            scanner.nextLine();
             if (select >= 1 && select <= nameSpaceArray.length) {
                 selectNameSpace = nameSpaceArray[select - 1];
             } else if (select == -1) {
@@ -164,7 +169,7 @@ public class ReversiClient {
         }
 
         final Socket nameSpaceSocket = IO.socket(this.url.resolve(String.format("/%s", selectNameSpace)));
-        ClientGameRoom.executeAndWait(nameSpaceSocket, boardDrawerType, scanner);
+        ClientGameRoom.executeAndWait(nameSpaceSocket, boardDrawerType, this.scannerSupplier);
     }
 
     private void disconnect() {

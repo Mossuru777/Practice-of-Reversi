@@ -1,4 +1,4 @@
-package net.mossan.java.reversi.server.model.player;
+package net.mossan.java.reversi.server.model.seatplayer;
 
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class LongestPlaceCPU extends ServerPlayer {
+public class LongestPlaceCPU extends SeatPlayer {
     public LongestPlaceCPU() {
-        super(UUID.nameUUIDFromBytes(("LongestPlaceCPU".getBytes())));
+        super(UUID.randomUUID(), "LongestPlaceCPU");
     }
 
     @Override

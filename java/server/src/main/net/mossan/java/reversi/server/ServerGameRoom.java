@@ -4,124 +4,175 @@ import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.SocketIOServer;
 import net.mossan.java.reversi.common.exception.NoEmptySeatException;
-import net.mossan.java.reversi.common.jsonExchange.GameState;
-import net.mossan.java.reversi.common.jsonExchange.SeatReservation;
-import net.mossan.java.reversi.common.jsonExchange.SelectCell;
+import net.mossan.java.reversi.common.jsonExchange.*;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
+import net.mossan.java.reversi.common.model.PlayerType;
 import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
-import net.mossan.java.reversi.server.model.player.LongestPlaceCPU;
-import net.mossan.java.reversi.server.model.player.NetworkPlayer;
-import net.mossan.java.reversi.server.model.player.ServerPlayer;
+import net.mossan.java.reversi.server.model.seatplayer.LongestPlaceCPU;
+import net.mossan.java.reversi.server.model.seatplayer.NetworkPlayer;
+import net.mossan.java.reversi.server.model.seatplayer.RandomPlaceCPU;
+import net.mossan.java.reversi.server.model.seatplayer.SeatPlayer;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.function.Function;
 
 class ServerGameRoom implements ObserverEventListener {
     final UUID uuid;
     private final SocketIONamespace nameSpace;
     private final Game game;
-    private final Map<UUID, ServerPlayer> playersMap = new HashMap<>();
-    private final ServerPlayer[] players = new ServerPlayer[2];
+    private final Map<UUID, NetworkPlayer> networkPlayersMap = new HashMap<>();
+    private final SeatPlayer[] seatPlayers = new SeatPlayer[2];
 
     ServerGameRoom(int board_rows, SocketIOServer socket) {
-        this.game = new Game(board_rows, this::onChangeTurn);
+        this.game = new Game(board_rows, this);
 
-        // DEBUG
-        this.players[DiscType.WHITE.getInt()] = new LongestPlaceCPU();
-
-        while (true) {
-            UUID uuid = UUID.randomUUID();
-            String nameSpaceStr = String.format("/%s", uuid.toString());
-            if (socket.getNamespace(nameSpaceStr) != null) {
-                continue;
-            }
-            this.uuid = uuid;
-            this.nameSpace = socket.addNamespace(nameSpaceStr);
-            break;
-        }
+        this.uuid = UUID.randomUUID();
+        this.nameSpace = socket.addNamespace(String.format("/%s", this.uuid.toString()));
 
         this.nameSpace.addConnectListener(client -> {
             System.out.println(String.format("*** Enter (%s): %s ***", this.nameSpace.getName(), client.getSessionId()));
-            NetworkPlayer networkPlayer = new NetworkPlayer(client, this::getSeatedPlayerUUIDs);
-            this.playersMap.put(client.getSessionId(), networkPlayer);
+            NetworkPlayer networkPlayer = new NetworkPlayer(client.getSessionId());
+            this.networkPlayersMap.put(client.getSessionId(), networkPlayer);
             this.sendGameState(client);
         });
 
         this.nameSpace.addDisconnectListener(client -> {
             System.out.println(String.format("*** Leave (%s): %s ***", this.nameSpace.getName(), client.getSessionId()));
-            NetworkPlayer disconnectPlayer = (NetworkPlayer) this.playersMap.get(client.getSessionId());
-            this.playersMap.remove(client.getSessionId());
+            NetworkPlayer disconnectPlayer = this.networkPlayersMap.get(client.getSessionId());
+            this.networkPlayersMap.remove(client.getSessionId());
             this.leaveSeat(disconnectPlayer);
         });
 
-        this.nameSpace.addEventListener("getSeat", JSONObject.class, (client, data, ackSender) -> {
-            SeatReservation reservation = new SeatReservation(data);
-            NetworkPlayer player = (NetworkPlayer) this.playersMap.get(client.getSessionId());
+        this.nameSpace.addEventListener("SeatRequest", JSONObject.class, (client, data, ackSender) -> {
+            SeatRequest request = new SeatRequest(data);
+
+            SeatPlayer player;
+            if (request.playerType == PlayerType.NetworkPlayer) {
+                player = this.networkPlayersMap.get(client.getSessionId());
+            } else if (request.playerType == PlayerType.LongestPlaceCPU) {
+                player = new LongestPlaceCPU();
+            } else {
+                player = new RandomPlaceCPU();
+            }
+
             try {
-                this.getSeat(player, reservation.discType);
+                ackSender.sendAckData(RequestReply.Success(null).toJSONObject().toString());
+                this.getSeat(player, request.discType);
             } catch (NoEmptySeatException ignore) {
+                ackSender.sendAckData(RequestReply.Failed("Sorry, another player was sitting on earlier than you.").toJSONObject().toString());
             }
         });
 
-        this.nameSpace.addEventListener("SelectCell", JSONObject.class, (client, data, ackSender) -> {
-            for (int i = 0; i < 2; ++i) {
-                if (this.players[i] == null || !this.players[i].uuid.equals(client.getSessionId())) continue;
-                DiscType discType = DiscType.fromInt(i);
-                if (discType == this.game.getCurrentTurn()) {
-                    SelectCell selectCell = new SelectCell(data);
-                    this.game.placeCell(selectCell);
+        this.nameSpace.addEventListener("UnSeatRequest", JSONObject.class, (client, data, ackSender) -> {
+            UnSeatRequest request = new UnSeatRequest(data);
+
+            SeatPlayer seatedPlayer = this.seatPlayers[request.discType.getInt()];
+            if (seatedPlayer == null) {
+                ackSender.sendAckData(RequestReply.Success(null));
+            } else if (seatedPlayer instanceof NetworkPlayer) {
+                if (seatedPlayer.uuid.equals(client.getSessionId())) {
+                    this.leaveSeat(seatedPlayer);
+                    ackSender.sendAckData(RequestReply.Success(null));
+                } else {
+                    ackSender.sendAckData(RequestReply.Failed("other player is seated.").toJSONObject().toString());
                 }
-                break;
+            } else {
+                this.leaveSeat(seatedPlayer);
+                ackSender.sendAckData(RequestReply.Success(null));
             }
         });
 
-        this.onChangeTurn();
+        this.nameSpace.addEventListener("CellSelect", JSONObject.class, (client, data, ackSender) -> {
+            for (int i = 0; i < 2; ++i) {
+                if (this.seatPlayers[i] == null || !this.seatPlayers[i].uuid.equals(client.getSessionId())) continue;
+                DiscType discType = DiscType.fromInt(i);
+                if (discType != this.game.getCurrentTurn()) {
+                    ackSender.sendAckData(RequestReply.Failed("It is not your turn now.").toJSONObject().toString());
+                }
+
+                CellSelect cellSelect = new CellSelect(data);
+                NetworkPlayer seatNetworkPlayer = (NetworkPlayer) this.seatPlayers[i];
+                if (seatNetworkPlayer.selectCell(cellSelect)) {
+                    ackSender.sendAckData(RequestReply.Success(null));
+                } else {
+                    ackSender.sendAckData(RequestReply.Failed("It can not be placed in the specified place."));
+                }
+                return;
+            }
+            ackSender.sendAckData(RequestReply.Failed("You are not seated.").toJSONObject().toString());
+        });
+
+        this.nameSpace.addEventListener("requestGameState", Object.class, ((client, data, ackSender) -> {
+            this.sendGameState(client);
+        }));
+
+        this.onGameUpdate();
     }
 
-    private void onChangeTurn() {
+    private PlayerType[][] acquireSeatAvailabilities() {
+        Function<@Nullable SeatPlayer, PlayerType[]> acquire = seatedPlayer -> {
+            if (seatedPlayer == null) {
+                return new PlayerType[]{PlayerType.NetworkPlayer, PlayerType.LongestPlaceCPU, PlayerType.RandomPlaceCPU};
+            } else {
+                return new PlayerType[0];
+            }
+        };
+
+        return new PlayerType[][]{
+                acquire.apply(this.seatPlayers[0]),
+                acquire.apply(this.seatPlayers[1])
+        };
+    }
+
+    private void onGameUpdate() {
         this.sendGameState(this.nameSpace.getBroadcastOperations());
         if (this.getInGame()) {
             assert this.game.getCurrentTurn() != null;
-            ServerPlayer currentTurnPlayer = this.players[this.game.getCurrentTurn().getInt()];
-            if (currentTurnPlayer == null) return;
-
-            currentTurnPlayer.notifyTurn(game, this.game::placeCell);
+            SeatPlayer currentTurnPlayer = this.seatPlayers[this.game.getCurrentTurn().getInt()];
+            if (currentTurnPlayer != null) {
+                currentTurnPlayer.notifyTurn(this.game, this.game::placeCell);
+            }
         }
     }
 
     int getSeatedPlayerCount() {
-        return (int) Arrays.stream(this.players).filter(Objects::nonNull).count();
+        return (int) Arrays.stream(this.seatPlayers).filter(Objects::nonNull).count();
     }
 
     boolean getInGame() {
         return this.game.getWinner() == null;
     }
 
-    private void getSeat(ServerPlayer player, DiscType discType) throws NoEmptySeatException {
-        if (this.players[discType.getInt()] != null) {
+    private void getSeat(SeatPlayer player, DiscType discType) throws NoEmptySeatException {
+        if (this.seatPlayers[discType.getInt()] instanceof NetworkPlayer) {
             throw new NoEmptySeatException();
         }
 
-        this.players[discType.getInt()] = player;
-
-        this.sendGameState(this.nameSpace.getBroadcastOperations());
-        this.onChangeTurn();
+        this.seatPlayers[discType.getInt()] = player;
+        this.onGameUpdate();
     }
 
-    private void leaveSeat(ServerPlayer player) {
+    private void leaveSeat(SeatPlayer player) {
         for (int i = 0; i < 2; ++i) {
-            if (this.players[i] != null && this.players[i].uuid.equals(player.uuid)) {
-                this.players[i] = null;
-                this.sendGameState(this.nameSpace.getBroadcastOperations());
+            if (this.seatPlayers[i] != null && this.seatPlayers[i].uuid.equals(player.uuid)) {
+                this.seatPlayers[i] = null;
+                this.onGameUpdate();
                 return;
             }
         }
     }
 
     private void sendGameState(ClientOperations clientOperations) {
-        GameState state = new GameState(game, this.getSeatedPlayerUUIDs(), false);
+        GameState state = new GameState(
+                this.game,
+                this.getSeatedPlayerUUIDs(),
+                this.getSeatedPlayerNames(),
+                this.acquireSeatAvailabilities()
+        );
         try {
             clientOperations.sendEvent("GameState", state.toJSONObject().toString());
         } catch (JSONException e) {
@@ -132,18 +183,29 @@ class ServerGameRoom implements ObserverEventListener {
     private UUID[] getSeatedPlayerUUIDs() {
         final UUID[] uuids = new UUID[2];
         for (int i = 0; i < 2; ++i) {
-            if (this.players[i] == null) {
+            if (this.seatPlayers[i] == null) {
                 uuids[i] = null;
             } else {
-                uuids[i] = this.players[i].uuid;
+                uuids[i] = this.seatPlayers[i].uuid;
             }
         }
         return uuids;
     }
 
-    // ObserverEventListener
+    private String[] getSeatedPlayerNames() {
+        final String[] names = new String[2];
+        for (int i = 0; i < 2; ++i) {
+            if (this.seatPlayers[i] == null) {
+                names[i] = null;
+            } else {
+                names[i] = this.seatPlayers[i].name;
+            }
+        }
+        return names;
+    }
+
     @Override
     public void boardUpdated(Game game) {
-        this.sendGameState(this.nameSpace.getBroadcastOperations());
+        this.onGameUpdate();
     }
 }

@@ -44,4 +44,13 @@ public enum DiscType {
     public Color getColor() {
         return this == DiscType.BLACK ? Color.black : Color.white;
     }
+
+    @Override
+    public String toString() {
+        if (this == BLACK) {
+            return "Black";
+        } else {
+            return "White";
+        }
+    }
 }

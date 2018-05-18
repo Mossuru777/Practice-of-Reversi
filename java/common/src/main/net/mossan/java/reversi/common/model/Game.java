@@ -1,7 +1,7 @@
 package net.mossan.java.reversi.common.model;
 
 import net.mossan.java.reversi.common.jsonExchange.GameState;
-import net.mossan.java.reversi.common.jsonExchange.SelectCell;
+import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
 import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,25 +11,28 @@ import java.util.List;
 
 public class Game {
     private static final int[][] PLACEABLE_CELL_SEARCH_MOVE_PATTERNS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
-    private final Runnable serverTurnEventLoopFunc;
+    private final boolean inServer;
+    private final ObserverEventListener observer;
     private DiscType[][] board;
     private @Nullable DiscType currentTurn;
     private @Nullable DiscType winner;
 
     // For server
-    public Game(final int board_rows, Runnable serverTurnEventLoopFunc) {
+    public Game(final int board_rows, ObserverEventListener observer) {
         // Arguments Check
         assert board_rows > 0 && board_rows % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
 
         // Initialize
-        this.serverTurnEventLoopFunc = serverTurnEventLoopFunc;
+        this.inServer = true;
+        this.observer = observer;
         this.board = new DiscType[board_rows][board_rows];
         this.resetBoard();
     }
 
     // For client
-    public Game(@NotNull GameState state) {
-        this.serverTurnEventLoopFunc = null;
+    public Game(@NotNull GameState state, ObserverEventListener observer) {
+        this.inServer = false;
+        this.observer = observer;
         this.updateFromState(state);
     }
 
@@ -38,7 +41,7 @@ public class Game {
     }
 
     public void updateFromState(@NotNull GameState state) {
-        assert this.serverTurnEventLoopFunc == null : "Server can't call this.";
+        assert !this.inServer : "Server can't call this.";
 
         // Parameters Check
         assert state.board.length > 0 && state.board.length % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
@@ -56,7 +59,7 @@ public class Game {
     }
 
     private void resetBoard() {
-        assert this.serverTurnEventLoopFunc != null : "Client can't reset board.";
+        assert this.inServer : "Client can't reset board.";
 
         for (int i = 0; i < this.getBoardRows(); i++) {
             for (int j = 0; j < this.getBoardRows(); j++) {
@@ -145,7 +148,7 @@ public class Game {
     }
 
     public void placeCell(PlaceableCell placeCell) {
-        assert this.serverTurnEventLoopFunc != null : "Client can't place disc.";
+        assert this.inServer : "Client can't place disc.";
         assert this.currentTurn != null && this.winner == null : "The winner decided.";
 
         this.getPlaceableCellsList(this.currentTurn).stream().filter(placeCell::equals).findFirst().ifPresent(p -> {
@@ -177,18 +180,9 @@ public class Game {
                     winner = DiscType.WHITE;
                 }
             }
+            this.observer.boardUpdated(this);
         });
-
-        new Thread(this.serverTurnEventLoopFunc).start();
-    }
-
-    public void placeCell(SelectCell selectCell) {
-        this.getPlaceableCellsList(this.currentTurn)
-                .stream()
-                .filter(placeableCell ->
-                        placeableCell.placePoint[0] == selectCell.horizontal
-                                && placeableCell.placePoint[1] == selectCell.vertical)
-                .findFirst().ifPresent(this::placeCell);
+        System.out.print("");
     }
 
     public @Nullable DiscType getCurrentTurn() {

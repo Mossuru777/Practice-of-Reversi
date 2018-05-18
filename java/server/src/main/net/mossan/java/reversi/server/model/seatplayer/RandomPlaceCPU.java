@@ -1,4 +1,4 @@
-package net.mossan.java.reversi.server.model.player;
+package net.mossan.java.reversi.server.model.seatplayer;
 
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class RandomPlaceCPU extends ServerPlayer {
+public class RandomPlaceCPU extends SeatPlayer {
     private SecureRandom random = new SecureRandom();
 
     public RandomPlaceCPU() {
-        super(UUID.nameUUIDFromBytes(("RandomPlaceCPU".getBytes())));
+        super(UUID.randomUUID(), "RandomPlaceCPU");
     }
 
     @Override
