@@ -48,6 +48,11 @@ class ServerGameRoom implements ObserverEventListener {
         });
 
         this.nameSpace.addEventListener("SeatRequest", JSONObject.class, (client, data, ackSender) -> {
+            if (!this.getInGame()) {
+                ackSender.sendAckData(RequestReply.Failed("Game is over."));
+                return;
+            }
+
             SeatRequest request = new SeatRequest(data);
 
             SeatPlayer player;
@@ -206,6 +211,10 @@ class ServerGameRoom implements ObserverEventListener {
 
     @Override
     public void boardUpdated(Game game) {
+        if (!this.getInGame()) {
+            Arrays.stream(this.seatPlayers).filter(Objects::nonNull).forEach(this::leaveSeat);
+        }
+
         this.onGameUpdate();
     }
 }
