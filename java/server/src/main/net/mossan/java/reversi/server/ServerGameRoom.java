@@ -120,7 +120,7 @@ class ServerGameRoom implements ObserverEventListener {
 
     private PlayerType[][] acquireSeatAvailabilities() {
         Function<@Nullable SeatPlayer, PlayerType[]> acquire = seatedPlayer -> {
-            if (seatedPlayer == null) {
+            if (this.getInGame() && seatedPlayer == null) {
                 return new PlayerType[]{PlayerType.NetworkPlayer, PlayerType.LongestPlaceCPU, PlayerType.RandomPlaceCPU};
             } else {
                 return new PlayerType[0];
