@@ -1,4 +1,4 @@
-package net.mossan.java.reversi.common.model.eventlistener;
+package net.mossan.java.reversi.common.model;
 
 import java.util.List;
 

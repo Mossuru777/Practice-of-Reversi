@@ -1,6 +1,7 @@
 package net.mossan.java.reversi.common.model.eventlistener;
 
 import net.mossan.java.reversi.common.model.Game;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 
 import java.util.EventListener;
 import java.util.function.Consumer;

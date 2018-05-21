@@ -2,7 +2,7 @@ package net.mossan.java.reversi.client.boarddrawer.guiboarddrawer;
 
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 
 import javax.swing.*;
 import java.awt.*;

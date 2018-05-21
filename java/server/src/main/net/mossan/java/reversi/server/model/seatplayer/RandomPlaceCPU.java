@@ -1,7 +1,7 @@
 package net.mossan.java.reversi.server.model.seatplayer;
 
 import net.mossan.java.reversi.common.model.Game;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 
 import java.security.SecureRandom;
 import java.util.List;

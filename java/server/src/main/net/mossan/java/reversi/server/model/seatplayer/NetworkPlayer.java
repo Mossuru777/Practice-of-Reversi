@@ -2,7 +2,7 @@ package net.mossan.java.reversi.server.model.seatplayer;
 
 import net.mossan.java.reversi.common.jsonExchange.CellSelect;
 import net.mossan.java.reversi.common.model.Game;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 
 import java.util.Optional;
 import java.util.UUID;

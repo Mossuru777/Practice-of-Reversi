@@ -4,8 +4,8 @@ import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
 import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 import net.mossan.java.reversi.common.model.PlayerType;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -131,7 +131,8 @@ public class GUIBoardDrawer extends JFrame implements BoardDrawer {
 
     private void tryPlaceCell(int horizontal, int vertical) {
         DiscType currentTurn = this.drawGame.getCurrentTurn();
-        if (this.placeCell == null || this.drawGame == null || currentTurn == null || currentTurn != this.currentDiscType) return;
+        if (this.placeCell == null || this.drawGame == null || currentTurn == null || currentTurn != this.currentDiscType)
+            return;
 
         this.drawGame.getPlaceableCellsList(this.drawGame.getCurrentTurn())
                 .stream()

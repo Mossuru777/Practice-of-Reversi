@@ -3,8 +3,8 @@ package net.mossan.java.reversi.client.boarddrawer;
 import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
+import net.mossan.java.reversi.common.model.PlaceableCell;
 import net.mossan.java.reversi.common.model.PlayerType;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

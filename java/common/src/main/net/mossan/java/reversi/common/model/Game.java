@@ -2,7 +2,6 @@ package net.mossan.java.reversi.common.model;
 
 import net.mossan.java.reversi.common.jsonExchange.GameState;
 import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
-import net.mossan.java.reversi.common.model.eventlistener.PlaceableCell;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
