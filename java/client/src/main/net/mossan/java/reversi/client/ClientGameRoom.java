@@ -34,7 +34,7 @@ public class ClientGameRoom {
 
         this.nameSpaceSocket
                 .on(Socket.EVENT_CONNECT, args -> {
-                    this.uuid = UUID.fromString(this.nameSpaceSocket.id());
+                    this.uuid = UUID.fromString(this.nameSpaceSocket.id().replaceFirst("^.*#", ""));
                     if (this.game == null) {
                         System.out.println("*** Room Entered. ***");
                     } else {

@@ -1,6 +1,6 @@
 dependencies {
-    compile 'org.slf4j:slf4j-nop:1.7.25'
-    compile 'com.corundumstudio.socketio:netty-socketio:1.7.14'
+    compile 'org.slf4j:slf4j-nop:1.7.26'
+    compile 'com.corundumstudio.socketio:netty-socketio:1.7.17'
 }
 
 mainClassName = 'net.mossan.java.reversi.server.ReversiServer'

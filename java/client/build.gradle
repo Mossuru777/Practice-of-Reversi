@@ -1,5 +1,5 @@
 dependencies {
-    compile 'io.socket:socket.io-client:0.9.0' // 1.0.0だとnamespaceでプロトコル不整合が発生する
+    compile 'io.socket:socket.io-client:1.0.0'
 }
 
 mainClassName = 'net.mossan.java.reversi.client.ReversiClient'
