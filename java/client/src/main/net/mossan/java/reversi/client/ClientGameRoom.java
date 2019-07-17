@@ -109,7 +109,7 @@ public class ClientGameRoom {
                                 "CellSelect",
                                 cellSelect.toJSONObject().toString(),
                                 (Ack) args -> {
-                                    JSONObject json = (JSONObject) args[0];
+                                    JSONObject json = new JSONObject((String) args[0]);
                                     RequestReply requestReply = new RequestReply(json);
                                     if (!requestReply.success && requestReply.detail != null) {
                                         System.err.println(requestReply.detail);
