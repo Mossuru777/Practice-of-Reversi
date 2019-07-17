@@ -1,11 +1,11 @@
-package net.mossan.java.reversi.client.boarddrawer;
+package net.mossan.java.reversi.client.boarddrawer.cui;
 
-import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
+import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlaceableCell;
 import net.mossan.java.reversi.common.model.PlayerType;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -31,7 +31,7 @@ public class ConsoleBoardDrawer implements BoardDrawer {
     }
 
     private static String getDiscMarkString(@Nullable DiscType discType) {
-        return discType == null ? "　" : discType == DiscType.BLACK ? "●" : "○";
+        return discType == null ? "　" : discType == DiscType.Black ? "●" : "○";
     }
 
     private void outputBoardToConsole(DiscType[][] board) {
@@ -69,7 +69,7 @@ public class ConsoleBoardDrawer implements BoardDrawer {
         }
     }
 
-    private void outputPlayerSeatSelectMenuToConsole(@NotNull DiscType currentTurn) {
+    private void outputPlayerSeatSelectMenuToConsole(DiscType currentTurn) {
         while (this.seatAvailabilities == null) {
             try {
                 Thread.sleep(100);

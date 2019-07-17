@@ -1,8 +1,7 @@
 package net.mossan.java.reversi.common.model;
 
-import net.mossan.java.reversi.common.jsonExchange.GameState;
+import net.mossan.java.reversi.common.message.response.GameState;
 import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ public class Game {
     }
 
     // For client
-    public Game(@NotNull GameState state, ObserverEventListener observer) {
+    public Game(GameState state, ObserverEventListener observer) {
         this.inServer = false;
         this.observer = observer;
         this.updateFromState(state);
@@ -39,7 +38,7 @@ public class Game {
         return this.board.length;
     }
 
-    public void updateFromState(@NotNull GameState state) {
+    public void updateFromState(GameState state) {
         assert !this.inServer : "Server can't call this.";
 
         // Parameters Check
@@ -66,13 +65,13 @@ public class Game {
             }
         }
         for (int i = this.getBoardRows() / 2 - 1; i <= this.getBoardRows() / 2; i++) {
-            DiscType placeDiscType = i % 2 == 1 ? DiscType.BLACK : DiscType.WHITE;
+            DiscType placeDiscType = i % 2 == 1 ? DiscType.Black : DiscType.White;
             for (int j = this.getBoardRows() / 2 - 1; j <= this.getBoardRows() / 2; j++) {
                 board[i][j] = placeDiscType;
                 placeDiscType = placeDiscType.otherDiscType();
             }
         }
-        currentTurn = DiscType.BLACK;
+        currentTurn = DiscType.Black;
         winner = null;
     }
 
@@ -173,10 +172,10 @@ public class Game {
                         discCount[board[h][v].getInt()]++;
                     }
                 }
-                if (discCount[DiscType.BLACK.getInt()] > discCount[DiscType.WHITE.getInt()]) {
-                    winner = DiscType.BLACK;
+                if (discCount[DiscType.Black.getInt()] > discCount[DiscType.White.getInt()]) {
+                    winner = DiscType.Black;
                 } else {
-                    winner = DiscType.WHITE;
+                    winner = DiscType.White;
                 }
             }
             this.observer.boardUpdated(this);

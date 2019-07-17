@@ -1,11 +1,12 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.request;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.PlayerType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SeatRequest implements JSONSerializable {
+public class SeatRequest implements JSONMessage {
     public final DiscType discType;
     public final PlayerType playerType;
 

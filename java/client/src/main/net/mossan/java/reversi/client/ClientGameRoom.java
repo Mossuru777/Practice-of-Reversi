@@ -4,12 +4,13 @@ import io.socket.client.Ack;
 import io.socket.client.Socket;
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawerType;
-import net.mossan.java.reversi.client.boarddrawer.ConsoleBoardDrawer;
-import net.mossan.java.reversi.client.boarddrawer.guiboarddrawer.GUIBoardDrawer;
-import net.mossan.java.reversi.common.jsonExchange.CellSelect;
-import net.mossan.java.reversi.common.jsonExchange.GameState;
-import net.mossan.java.reversi.common.jsonExchange.RequestReply;
-import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
+import net.mossan.java.reversi.client.boarddrawer.cui.ConsoleBoardDrawer;
+import net.mossan.java.reversi.client.boarddrawer.gui.GUIBoardDrawer;
+import net.mossan.java.reversi.common.message.EventType;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
+import net.mossan.java.reversi.common.message.request.CellSelect;
+import net.mossan.java.reversi.common.message.response.GameState;
+import net.mossan.java.reversi.common.message.response.RequestReply;
 import net.mossan.java.reversi.common.model.Game;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,7 +19,7 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public class ClientGameRoom {
+class ClientGameRoom {
     private final Socket nameSpaceSocket;
     private final BoardDrawerType boardDrawerType;
     private final Supplier<Scanner> scannerSupplier;
@@ -42,7 +43,7 @@ public class ClientGameRoom {
                         this.requestGameState();
                     }
                 })
-                .on("GameState", args -> {
+                .on(EventType.GameState.toString(), args -> {
                     try {
                         JSONObject obj = new JSONObject((String) args[args.length - 1]);
                         GameState newState = new GameState(obj);
@@ -59,7 +60,7 @@ public class ClientGameRoom {
         this.nameSpaceSocket.open();
     }
 
-    public static void executeAndWait(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Supplier<Scanner> scannerSupplier) {
+    static void executeAndWait(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Supplier<Scanner> scannerSupplier) {
         final ClientGameRoom instance = new ClientGameRoom(nameSpaceSocket, boardDrawerType, scannerSupplier);
         try {
             synchronized (instance) {
@@ -84,10 +85,11 @@ public class ClientGameRoom {
 
     private void updateState(GameState state) {
         if (this.game == null) {
-            if (boardDrawerType == BoardDrawerType.GUI) {
-                this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString(), this::requestSeat);
-            } else {
-                this.boardDrawer = new ConsoleBoardDrawer(this.scannerSupplier, this::requestSeat);
+            switch (boardDrawerType) {
+                case GUI:
+                    this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString(), this::requestSeat);
+                case CUI:
+                    this.boardDrawer = new ConsoleBoardDrawer(this.scannerSupplier, this::requestSeat);
             }
             this.game = new Game(state, this.boardDrawer);
         } else {
@@ -106,7 +108,7 @@ public class ClientGameRoom {
                     CellSelect cellSelect = new CellSelect(placeableCell.placePoint[0], placeableCell.placePoint[1]);
                     try {
                         this.nameSpaceSocket.emit(
-                                "CellSelect",
+                                EventType.selectCell.toString(),
                                 cellSelect.toJSONObject().toString(),
                                 (Ack) args -> {
                                     JSONObject json = new JSONObject((String) args[0]);
@@ -131,7 +133,7 @@ public class ClientGameRoom {
 
     private void requestSeat(SeatRequest seatRequest) {
         this.nameSpaceSocket.emit(
-                "SeatRequest",
+                EventType.seating.toString(),
                 seatRequest.toJSONObject().toString(),
                 (Ack) args -> {
                     JSONObject json = new JSONObject((String) args[0]);
@@ -141,11 +143,12 @@ public class ClientGameRoom {
                     } else if (requestReply.detail != null) {
                         System.err.println(requestReply.detail);
                     }
-                });
+                }
+        );
     }
 
     private void requestGameState() {
-        this.nameSpaceSocket.emit("requestGameState");
+        this.nameSpaceSocket.emit(EventType.requestGameState.toString());
     }
 
     private void exitRoom() {

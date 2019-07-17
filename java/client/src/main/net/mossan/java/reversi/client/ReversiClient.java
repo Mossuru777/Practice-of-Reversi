@@ -3,8 +3,9 @@ package net.mossan.java.reversi.client;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawerType;
-import net.mossan.java.reversi.common.jsonExchange.RoomDetail;
-import net.mossan.java.reversi.common.jsonExchange.ServerState;
+import net.mossan.java.reversi.common.message.EventType;
+import net.mossan.java.reversi.common.message.response.RoomDetail;
+import net.mossan.java.reversi.common.message.response.ServerState;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kohsuke.args4j.Argument;
@@ -62,7 +63,7 @@ public class ReversiClient {
         this.socket = IO.socket(this.url);
         this.socket
                 .on(Socket.EVENT_CONNECT, args -> System.out.println("*** Connected. ***"))
-                .on("ServerState", args -> {
+                .on(EventType.ServerState.toString(), args -> {
                     try {
                         JSONObject obj = new JSONObject((String) args[0]);
                         this.serverState = new ServerState(obj);

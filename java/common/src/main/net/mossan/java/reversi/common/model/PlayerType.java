@@ -26,8 +26,9 @@ public enum PlayerType {
             return PlayerType.LongestPlaceCPU;
         } else if (bit == RandomPlaceCPU.bit) {
             return PlayerType.RandomPlaceCPU;
+        } else {
+            throw new IllegalArgumentException("Unknown bit included: 0b" + Integer.toBinaryString(bit));
         }
-        return null;
     }
 
     public static PlayerType[] fromBits(int bits) {
@@ -46,19 +47,5 @@ public enum PlayerType {
 
     public int getBit() {
         return this.bit;
-    }
-
-    @Override
-    public String toString() {
-        switch (this) {
-            case NetworkPlayer:
-                return "NetworkPlayer";
-            case LongestPlaceCPU:
-                return "LongestPlaceCPU";
-            case RandomPlaceCPU:
-                return "RandomPlaceCPU";
-            default:
-                return "Unknown PlayerType";
-        }
     }
 }

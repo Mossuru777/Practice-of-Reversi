@@ -1,7 +1,7 @@
-package net.mossan.java.reversi.client.boarddrawer.guiboarddrawer;
+package net.mossan.java.reversi.client.boarddrawer.gui;
 
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
-import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlaceableCell;

@@ -1,4 +1,4 @@
-package net.mossan.java.reversi.client.boarddrawer.guiboarddrawer;
+package net.mossan.java.reversi.client.boarddrawer.gui;
 
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
@@ -82,9 +82,9 @@ class BoardPanel extends JPanel implements MouseListener {
             for (int j = 0; j < drawBoard.length; j++) {
                 // Determine PlayerEventListener Disc Color
                 Color discDrawColor;
-                if (drawBoard[i][j] == DiscType.BLACK) {
+                if (drawBoard[i][j] == DiscType.Black) {
                     discDrawColor = Color.black;
-                } else if (drawBoard[i][j] == DiscType.WHITE) {
+                } else if (drawBoard[i][j] == DiscType.White) {
                     discDrawColor = Color.white;
                 } else {
                     discDrawColor = BOARD_BACKGROUND_COLOR;

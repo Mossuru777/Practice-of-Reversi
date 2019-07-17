@@ -1,9 +1,10 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.response;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RoomDetail implements JSONSerializable {
+public class RoomDetail implements JSONMessage {
     public final int seatedPlayerCount;
     public final boolean inGame;
 
@@ -12,7 +13,7 @@ public class RoomDetail implements JSONSerializable {
         this.inGame = inGame;
     }
 
-    public RoomDetail(JSONObject o) throws JSONException {
+    RoomDetail(JSONObject o) throws JSONException {
         this.seatedPlayerCount = o.getInt("seatedPlayerCount");
         this.inGame = o.getBoolean("inGame");
     }

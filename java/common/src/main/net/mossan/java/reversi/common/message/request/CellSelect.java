@@ -1,9 +1,10 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.request;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class CellSelect implements JSONSerializable {
+public class CellSelect implements JSONMessage {
     public final int horizontal;
     public final int vertical;
 

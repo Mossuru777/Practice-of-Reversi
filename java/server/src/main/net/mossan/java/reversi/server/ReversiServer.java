@@ -3,8 +3,9 @@ package net.mossan.java.reversi.server;
 import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
-import net.mossan.java.reversi.common.jsonExchange.RoomDetail;
-import net.mossan.java.reversi.common.jsonExchange.ServerState;
+import net.mossan.java.reversi.common.message.EventType;
+import net.mossan.java.reversi.common.message.response.RoomDetail;
+import net.mossan.java.reversi.common.message.response.ServerState;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kohsuke.args4j.CmdLineException;
@@ -72,13 +73,13 @@ public class ReversiServer {
         });
 
         this.socket.addEventListener(
-                "getServerState",
+                EventType.requestServerState.toString(),
                 JSONObject.class,
                 (client, data, ackSender) -> this.sendServerState(client)
         );
 
         this.socket.addEventListener(
-                "createRoom",
+                EventType.createRoom.toString(),
                 JSONObject.class,
                 (client, data, ackSender) -> {
                     this.createRoom();
@@ -100,7 +101,7 @@ public class ReversiServer {
         }
 
         ServerState state = new ServerState(roomDetailMap);
-        clientOperations.sendEvent("ServerState", state.toJSONObject().toString());
+        clientOperations.sendEvent(EventType.ServerState.toString(), state.toJSONObject().toString());
     }
 
     private void createRoom() {

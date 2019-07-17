@@ -1,6 +1,6 @@
 package net.mossan.java.reversi.client.boarddrawer.eventlistener;
 
-import net.mossan.java.reversi.common.jsonExchange.SeatRequest;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
 import net.mossan.java.reversi.common.model.PlayerType;
 
 import java.util.EventListener;

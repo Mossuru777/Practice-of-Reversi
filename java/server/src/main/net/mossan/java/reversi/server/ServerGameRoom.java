@@ -4,7 +4,12 @@ import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.SocketIOServer;
 import net.mossan.java.reversi.common.exception.NoEmptySeatException;
-import net.mossan.java.reversi.common.jsonExchange.*;
+import net.mossan.java.reversi.common.message.EventType;
+import net.mossan.java.reversi.common.message.request.CellSelect;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
+import net.mossan.java.reversi.common.message.request.UnSeatRequest;
+import net.mossan.java.reversi.common.message.response.GameState;
+import net.mossan.java.reversi.common.message.response.RequestReply;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlayerType;
@@ -47,9 +52,9 @@ class ServerGameRoom implements ObserverEventListener {
             this.leaveSeat(disconnectPlayer);
         });
 
-        this.nameSpace.addEventListener("SeatRequest", JSONObject.class, (client, data, ackSender) -> {
+        this.nameSpace.addEventListener(EventType.seating.toString(), JSONObject.class, (client, data, ackSender) -> {
             if (!this.getInGame()) {
-                ackSender.sendAckData(RequestReply.Failed("Game is over."));
+                ackSender.sendAckData(RequestReply.Failed("Game is over.").toJSONObject().toString());
                 return;
             }
 
@@ -72,26 +77,26 @@ class ServerGameRoom implements ObserverEventListener {
             }
         });
 
-        this.nameSpace.addEventListener("UnSeatRequest", JSONObject.class, (client, data, ackSender) -> {
+        this.nameSpace.addEventListener(EventType.unSeating.toString(), JSONObject.class, (client, data, ackSender) -> {
             UnSeatRequest request = new UnSeatRequest(data);
 
             SeatPlayer seatedPlayer = this.seatPlayers[request.discType.getInt()];
             if (seatedPlayer == null) {
-                ackSender.sendAckData(RequestReply.Success(null));
+                ackSender.sendAckData(RequestReply.Success(null).toJSONObject().toString());
             } else if (seatedPlayer instanceof NetworkPlayer) {
                 if (seatedPlayer.uuid.equals(client.getSessionId())) {
                     this.leaveSeat(seatedPlayer);
-                    ackSender.sendAckData(RequestReply.Success(null));
+                    ackSender.sendAckData(RequestReply.Success(null).toJSONObject().toString());
                 } else {
                     ackSender.sendAckData(RequestReply.Failed("other player is seated.").toJSONObject().toString());
                 }
             } else {
                 this.leaveSeat(seatedPlayer);
-                ackSender.sendAckData(RequestReply.Success(null));
+                ackSender.sendAckData(RequestReply.Success(null).toJSONObject().toString());
             }
         });
 
-        this.nameSpace.addEventListener("CellSelect", JSONObject.class, (client, data, ackSender) -> {
+        this.nameSpace.addEventListener(EventType.selectCell.toString(), JSONObject.class, (client, data, ackSender) -> {
             for (int i = 0; i < 2; ++i) {
                 if (this.seatPlayers[i] == null || !this.seatPlayers[i].uuid.equals(client.getSessionId())) continue;
                 DiscType discType = DiscType.fromInt(i);
@@ -102,18 +107,16 @@ class ServerGameRoom implements ObserverEventListener {
                 CellSelect cellSelect = new CellSelect(data);
                 NetworkPlayer seatNetworkPlayer = (NetworkPlayer) this.seatPlayers[i];
                 if (seatNetworkPlayer.selectCell(cellSelect)) {
-                    ackSender.sendAckData(RequestReply.Success(null));
+                    ackSender.sendAckData(RequestReply.Success(null).toJSONObject().toString());
                 } else {
-                    ackSender.sendAckData(RequestReply.Failed("It can not be placed in the specified place."));
+                    ackSender.sendAckData(RequestReply.Failed("It can not be placed in the specified place.").toJSONObject().toString());
                 }
                 return;
             }
             ackSender.sendAckData(RequestReply.Failed("You are not seated.").toJSONObject().toString());
         });
 
-        this.nameSpace.addEventListener("requestGameState", Object.class, ((client, data, ackSender) -> {
-            this.sendGameState(client);
-        }));
+        this.nameSpace.addEventListener(EventType.requestGameState.toString(), Object.class, (client, data, ackSender) -> this.sendGameState(client));
 
         this.onGameUpdate();
     }
@@ -179,7 +182,7 @@ class ServerGameRoom implements ObserverEventListener {
                 this.acquireSeatAvailabilities()
         );
         try {
-            clientOperations.sendEvent("GameState", state.toJSONObject().toString());
+            clientOperations.sendEvent(EventType.GameState.toString(), state.toJSONObject().toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -5,16 +5,16 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 public enum DiscType {
-    BLACK(0) {
+    Black(0) {
         @Override
         public DiscType otherDiscType() {
-            return DiscType.WHITE;
+            return DiscType.White;
         }
     },
-    WHITE(1) {
+    White(1) {
         @Override
         public DiscType otherDiscType() {
-            return DiscType.BLACK;
+            return DiscType.Black;
         }
     };
 
@@ -29,9 +29,9 @@ public enum DiscType {
             return null;
         }
         if (i == 0) {
-            return DiscType.BLACK;
+            return DiscType.Black;
         } else {
-            return DiscType.WHITE;
+            return DiscType.White;
         }
     }
 
@@ -42,15 +42,6 @@ public enum DiscType {
     }
 
     public Color getColor() {
-        return this == DiscType.BLACK ? Color.black : Color.white;
-    }
-
-    @Override
-    public String toString() {
-        if (this == BLACK) {
-            return "Black";
-        } else {
-            return "White";
-        }
+        return this == DiscType.Black ? Color.black : Color.white;
     }
 }

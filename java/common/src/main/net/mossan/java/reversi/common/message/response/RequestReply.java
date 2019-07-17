@@ -1,14 +1,15 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.response;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RequestReply implements JSONSerializable {
+public class RequestReply implements JSONMessage {
     public final boolean success;
     public final @Nullable String detail;
 
-    public RequestReply(boolean success, @Nullable String detail) {
+    private RequestReply(boolean success, @Nullable String detail) {
         this.success = success;
         this.detail = detail;
     }

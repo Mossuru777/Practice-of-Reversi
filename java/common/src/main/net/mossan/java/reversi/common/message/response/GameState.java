@@ -1,5 +1,6 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.response;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlayerType;
@@ -10,7 +11,7 @@ import org.json.JSONObject;
 
 import java.util.UUID;
 
-public class GameState implements JSONSerializable {
+public class GameState implements JSONMessage {
     public final DiscType[][] board;
     public final UUID[] playerUUIDs;
     public final String[] playerNames;

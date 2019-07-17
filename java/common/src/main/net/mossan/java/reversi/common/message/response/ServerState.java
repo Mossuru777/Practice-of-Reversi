@@ -1,5 +1,6 @@
-package net.mossan.java.reversi.common.jsonExchange;
+package net.mossan.java.reversi.common.message.response;
 
+import net.mossan.java.reversi.common.message.JSONMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,7 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
-public class ServerState implements JSONSerializable {
+public class ServerState implements JSONMessage {
     public final Map<UUID, RoomDetail> roomDetailMap;
 
     public ServerState(Map<UUID, RoomDetail> roomDetailMap) {
@@ -27,6 +28,7 @@ public class ServerState implements JSONSerializable {
         this.roomDetailMap = roomDetailMap;
     }
 
+    @Override
     public JSONObject toJSONObject() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("roomDetailMap", new HashMap<String, JSONObject>() {

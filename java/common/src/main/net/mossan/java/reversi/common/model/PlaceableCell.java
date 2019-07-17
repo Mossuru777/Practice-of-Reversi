@@ -6,7 +6,7 @@ public final class PlaceableCell {
     public final int[] placePoint;
     public final List<int[]> reversiblePoints;
 
-    public PlaceableCell(int[] placePoint, List<int[]> reversiblePoints) {
+    PlaceableCell(int[] placePoint, List<int[]> reversiblePoints) {
         this.placePoint = placePoint;
         this.reversiblePoints = reversiblePoints;
     }
