@@ -1,78 +1,18 @@
 package net.mossan.java.reversi.common.model;
 
-import net.mossan.java.reversi.common.message.response.GameState;
-import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Game {
+public abstract class Game {
     private static final int[][] PLACEABLE_CELL_SEARCH_MOVE_PATTERNS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
-    private final boolean inServer;
-    private final ObserverEventListener observer;
-    private DiscType[][] board;
-    private @Nullable DiscType currentTurn;
-    private @Nullable DiscType winner;
-
-    // For server
-    public Game(final int board_rows, ObserverEventListener observer) {
-        // Arguments Check
-        assert board_rows > 0 && board_rows % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
-
-        // Initialize
-        this.inServer = true;
-        this.observer = observer;
-        this.board = new DiscType[board_rows][board_rows];
-        this.resetBoard();
-    }
-
-    // For client
-    public Game(GameState state, ObserverEventListener observer) {
-        this.inServer = false;
-        this.observer = observer;
-        this.updateFromState(state);
-    }
+    protected DiscType[][] board;
+    protected @Nullable DiscType currentTurn;
+    protected @Nullable DiscType winner;
 
     public int getBoardRows() {
         return this.board.length;
-    }
-
-    public void updateFromState(GameState state) {
-        assert !this.inServer : "Server can't call this.";
-
-        // Parameters Check
-        assert state.board.length > 0 && state.board.length % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
-        assert state.board.length == state.board[0].length : "board is not square.";
-        if (state.turn != null) {
-            assert state.winner == null : "There must be no winners in games that are someone's turn.";
-        } else {
-            assert state.winner != null : "Nobody turn the game must have a winner.";
-        }
-
-        // Update state
-        this.board = state.board;
-        this.currentTurn = state.turn;
-        this.winner = state.winner;
-    }
-
-    private void resetBoard() {
-        assert this.inServer : "Client can't reset board.";
-
-        for (int i = 0; i < this.getBoardRows(); i++) {
-            for (int j = 0; j < this.getBoardRows(); j++) {
-                board[i][j] = null;
-            }
-        }
-        for (int i = this.getBoardRows() / 2 - 1; i <= this.getBoardRows() / 2; i++) {
-            DiscType placeDiscType = i % 2 == 1 ? DiscType.Black : DiscType.White;
-            for (int j = this.getBoardRows() / 2 - 1; j <= this.getBoardRows() / 2; j++) {
-                board[i][j] = placeDiscType;
-                placeDiscType = placeDiscType.otherDiscType();
-            }
-        }
-        currentTurn = DiscType.Black;
-        winner = null;
     }
 
     public DiscType[][] getBoard() {
@@ -143,44 +83,6 @@ public class Game {
             }
         }
         return placeableCells;
-    }
-
-    public void placeCell(PlaceableCell placeCell) {
-        assert this.inServer : "Client can't place disc.";
-        assert this.currentTurn != null && this.winner == null : "The winner decided.";
-
-        this.getPlaceableCellsList(this.currentTurn).stream().filter(placeCell::equals).findFirst().ifPresent(p -> {
-            // Place Disc
-            board[p.placePoint[0]][p.placePoint[1]] = this.currentTurn;
-            for (int[] reversiblePoint : p.reversiblePoints) {
-                board[reversiblePoint[0]][reversiblePoint[1]] = this.currentTurn;
-            }
-
-            // Determine turn change and game over
-            if (getPlaceableCellsList(this.currentTurn.otherDiscType()).size() > 0) {
-                this.currentTurn = this.currentTurn.otherDiscType();
-            } else if (getPlaceableCellsList(this.currentTurn).size() == 0) {
-                this.currentTurn = null;
-
-                // Determine winner
-                int[] discCount = new int[2];
-                for (int h = 0; h < this.getBoardRows(); h++) {
-                    for (int v = 0; v < this.getBoardRows(); v++) {
-                        if (board[h][v] == null) {
-                            continue;
-                        }
-                        discCount[board[h][v].getInt()]++;
-                    }
-                }
-                if (discCount[DiscType.Black.getInt()] > discCount[DiscType.White.getInt()]) {
-                    winner = DiscType.Black;
-                } else {
-                    winner = DiscType.White;
-                }
-            }
-            this.observer.boardUpdated(this);
-        });
-        System.out.print("");
     }
 
     public @Nullable DiscType getCurrentTurn() {

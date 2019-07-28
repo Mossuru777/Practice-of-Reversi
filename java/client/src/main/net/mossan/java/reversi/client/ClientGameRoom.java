@@ -6,12 +6,12 @@ import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawerType;
 import net.mossan.java.reversi.client.boarddrawer.cui.ConsoleBoardDrawer;
 import net.mossan.java.reversi.client.boarddrawer.gui.GUIBoardDrawer;
+import net.mossan.java.reversi.client.model.GameStateHolder;
 import net.mossan.java.reversi.common.message.EventType;
-import net.mossan.java.reversi.common.message.request.SeatRequest;
 import net.mossan.java.reversi.common.message.request.CellSelect;
+import net.mossan.java.reversi.common.message.request.SeatRequest;
 import net.mossan.java.reversi.common.message.response.GameState;
 import net.mossan.java.reversi.common.message.response.RequestReply;
-import net.mossan.java.reversi.common.model.Game;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,7 +25,7 @@ class ClientGameRoom {
     private final Supplier<Scanner> scannerSupplier;
 
     private UUID uuid;
-    private Game game = null;
+    private GameStateHolder gameStateHolder = null;
     private BoardDrawer boardDrawer = null;
 
     private ClientGameRoom(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Supplier<Scanner> scannerSupplier) {
@@ -36,7 +36,7 @@ class ClientGameRoom {
         this.nameSpaceSocket
                 .on(Socket.EVENT_CONNECT, args -> {
                     this.uuid = UUID.fromString(this.nameSpaceSocket.id().replaceFirst("^.*#", ""));
-                    if (this.game == null) {
+                    if (this.gameStateHolder == null) {
                         System.out.println("*** Room Entered. ***");
                     } else {
                         System.out.println("*** Room Re-Entered. ***");
@@ -84,27 +84,27 @@ class ClientGameRoom {
     }
 
     private void updateState(GameState state) {
-        if (this.game == null) {
+        if (this.gameStateHolder == null) {
             switch (boardDrawerType) {
                 case GUI:
                     this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString(), this::requestSeat);
                 case CUI:
                     this.boardDrawer = new ConsoleBoardDrawer(this.scannerSupplier, this::requestSeat);
             }
-            this.game = new Game(state, this.boardDrawer);
+            this.gameStateHolder = new GameStateHolder(state);
         } else {
-            this.game.updateFromState(state);
+            this.gameStateHolder.updateFromState(state);
         }
 
         final boolean myTurn =
-                this.game.getCurrentTurn() != null
-                        && state.playerUUIDs[this.game.getCurrentTurn().getInt()] != null
-                        && state.playerUUIDs[this.game.getCurrentTurn().getInt()].equals(this.uuid);
+                this.gameStateHolder.getCurrentTurn() != null
+                        && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()] != null
+                        && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()].equals(this.uuid);
         synchronized (this.boardDrawer) {
             this.boardDrawer.seatStatusUpdated(state.playerUUIDs, state.playerNames, state.seatAvailabilities);
-            this.boardDrawer.boardUpdated(this.game);
+            this.boardDrawer.boardUpdated(this.gameStateHolder);
             if (myTurn) {
-                this.boardDrawer.notifyTurn(this.game, (placeableCell) -> {
+                this.boardDrawer.notifyTurn(this.gameStateHolder, (placeableCell) -> {
                     CellSelect cellSelect = new CellSelect(placeableCell.placePoint[0], placeableCell.placePoint[1]);
                     try {
                         this.nameSpaceSocket.emit(

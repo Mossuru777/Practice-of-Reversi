@@ -14,6 +14,7 @@ import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlayerType;
 import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
+import net.mossan.java.reversi.server.model.Referee;
 import net.mossan.java.reversi.server.model.seatplayer.LongestPlaceCPU;
 import net.mossan.java.reversi.server.model.seatplayer.NetworkPlayer;
 import net.mossan.java.reversi.server.model.seatplayer.RandomPlaceCPU;
@@ -28,12 +29,12 @@ import java.util.function.Function;
 class ServerGameRoom implements ObserverEventListener {
     final UUID uuid;
     private final SocketIONamespace nameSpace;
-    private final Game game;
+    private final Referee referee;
     private final Map<UUID, NetworkPlayer> networkPlayersMap = new HashMap<>();
     private final SeatPlayer[] seatPlayers = new SeatPlayer[2];
 
     ServerGameRoom(int board_rows, SocketIOServer socket) {
-        this.game = new Game(board_rows, this);
+        this.referee = new Referee(board_rows, this);
 
         this.uuid = UUID.randomUUID();
         this.nameSpace = socket.addNamespace(String.format("/%s", this.uuid.toString()));
@@ -100,7 +101,7 @@ class ServerGameRoom implements ObserverEventListener {
             for (int i = 0; i < 2; ++i) {
                 if (this.seatPlayers[i] == null || !this.seatPlayers[i].uuid.equals(client.getSessionId())) continue;
                 DiscType discType = DiscType.fromInt(i);
-                if (discType != this.game.getCurrentTurn()) {
+                if (discType != this.referee.getCurrentTurn()) {
                     ackSender.sendAckData(RequestReply.Failed("It is not your turn now.").toJSONObject().toString());
                 }
 
@@ -139,10 +140,10 @@ class ServerGameRoom implements ObserverEventListener {
     private void onGameUpdate() {
         this.sendGameState(this.nameSpace.getBroadcastOperations());
         if (this.getInGame()) {
-            assert this.game.getCurrentTurn() != null;
-            SeatPlayer currentTurnPlayer = this.seatPlayers[this.game.getCurrentTurn().getInt()];
+            assert this.referee.getCurrentTurn() != null;
+            SeatPlayer currentTurnPlayer = this.seatPlayers[this.referee.getCurrentTurn().getInt()];
             if (currentTurnPlayer != null) {
-                currentTurnPlayer.notifyTurn(this.game, this.game::placeCell);
+                currentTurnPlayer.notifyTurn(this.referee, this.referee::placeCell);
             }
         }
     }
@@ -152,7 +153,7 @@ class ServerGameRoom implements ObserverEventListener {
     }
 
     boolean getInGame() {
-        return this.game.getWinner() == null;
+        return this.referee.getWinner() == null;
     }
 
     private void getSeat(SeatPlayer player, DiscType discType) throws NoEmptySeatException {
@@ -176,7 +177,7 @@ class ServerGameRoom implements ObserverEventListener {
 
     private void sendGameState(ClientOperations clientOperations) {
         GameState state = new GameState(
-                this.game,
+                this.referee,
                 this.getSeatedPlayerUUIDs(),
                 this.getSeatedPlayerNames(),
                 this.acquireSeatAvailabilities()
