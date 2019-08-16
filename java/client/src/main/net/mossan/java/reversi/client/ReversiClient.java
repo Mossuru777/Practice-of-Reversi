@@ -85,7 +85,7 @@ public class ReversiClient {
     private void displayMenu() {
         boolean loop = true;
         while (loop) {
-            System.out.println("*** Select Action ***");
+            System.out.println("*** Main Menu ***");
             System.out.println("1. Display Room List");
             System.out.println("2. Create Room");
             System.out.println("3. Enter Room");
@@ -170,7 +170,7 @@ public class ReversiClient {
         }
 
         final Socket nameSpaceSocket = IO.socket(this.url.resolve(String.format("/%s", selectNameSpace)));
-        ClientGameRoom.executeAndWait(nameSpaceSocket, boardDrawerType, this.scannerSupplier);
+        ClientGameRoom.roomIn(nameSpaceSocket, boardDrawerType, this.scannerSupplier);
     }
 
     private void disconnect() {
@@ -178,7 +178,7 @@ public class ReversiClient {
             this.socket.off();
             this.socket.close();
             this.socket = null;
-            System.out.println("*** Disconnected. ***");
+            System.out.println("*** Server Disconnected. ***");
         }
     }
 }

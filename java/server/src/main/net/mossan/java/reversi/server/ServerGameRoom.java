@@ -11,9 +11,7 @@ import net.mossan.java.reversi.common.message.request.UnSeatRequest;
 import net.mossan.java.reversi.common.message.response.GameState;
 import net.mossan.java.reversi.common.message.response.RequestReply;
 import net.mossan.java.reversi.common.model.DiscType;
-import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlayerType;
-import net.mossan.java.reversi.common.model.eventlistener.ObserverEventListener;
 import net.mossan.java.reversi.server.model.Referee;
 import net.mossan.java.reversi.server.model.seatplayer.LongestPlaceCPU;
 import net.mossan.java.reversi.server.model.seatplayer.NetworkPlayer;
@@ -26,7 +24,7 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.function.Function;
 
-class ServerGameRoom implements ObserverEventListener {
+public class ServerGameRoom {
     final UUID uuid;
     private final SocketIONamespace nameSpace;
     private final Referee referee;
@@ -137,7 +135,10 @@ class ServerGameRoom implements ObserverEventListener {
         };
     }
 
-    private void onGameUpdate() {
+    public void onGameUpdate() {
+        if (!this.getInGame()) {
+            Arrays.stream(this.seatPlayers).filter(Objects::nonNull).forEach(this::leaveSeat);
+        }
         this.sendGameState(this.nameSpace.getBroadcastOperations());
         if (this.getInGame()) {
             assert this.referee.getCurrentTurn() != null;
@@ -211,14 +212,5 @@ class ServerGameRoom implements ObserverEventListener {
             }
         }
         return names;
-    }
-
-    @Override
-    public void boardUpdated(Game game) {
-        if (!this.getInGame()) {
-            Arrays.stream(this.seatPlayers).filter(Objects::nonNull).forEach(this::leaveSeat);
-        }
-
-        this.onGameUpdate();
     }
 }

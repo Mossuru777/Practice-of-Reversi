@@ -2,14 +2,18 @@ package net.mossan.java.reversi.client.model;
 
 import net.mossan.java.reversi.common.message.response.GameState;
 import net.mossan.java.reversi.common.model.Game;
+import net.mossan.java.reversi.common.model.PlayerType;
 
 public final class GameStateHolder extends Game {
+    public String[] seatedPlayerNames;
+    public PlayerType[][] seatAvailabilities;
+
     public GameStateHolder(GameState state) {
         super();
-        this.updateFromState(state);
+        this.update(state);
     }
 
-    public void updateFromState(GameState state) {
+    public synchronized void update(GameState state) {
         // Parameters Check
         assert state.board.length > 0 && state.board.length % 2 == 0 : "board rows must be greater than 0 and divisible by 2.";
         assert state.board.length == state.board[0].length : "board is not square.";
@@ -23,5 +27,7 @@ public final class GameStateHolder extends Game {
         this.board = state.board;
         this.currentTurn = state.turn;
         this.winner = state.winner;
+        this.seatedPlayerNames = state.playerNames;
+        this.seatAvailabilities = state.seatAvailabilities;
     }
 }

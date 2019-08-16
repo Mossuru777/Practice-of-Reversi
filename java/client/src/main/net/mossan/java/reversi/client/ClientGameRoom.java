@@ -19,10 +19,11 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-class ClientGameRoom {
+public class ClientGameRoom implements Runnable {
     private final Socket nameSpaceSocket;
     private final BoardDrawerType boardDrawerType;
     private final Supplier<Scanner> scannerSupplier;
+    private final Object threadLock;
 
     private UUID uuid;
     private GameStateHolder gameStateHolder = null;
@@ -32,114 +33,119 @@ class ClientGameRoom {
         this.nameSpaceSocket = nameSpaceSocket;
         this.boardDrawerType = boardDrawerType;
         this.scannerSupplier = scannerSupplier;
-
-        this.nameSpaceSocket
-                .on(Socket.EVENT_CONNECT, args -> {
-                    this.uuid = UUID.fromString(this.nameSpaceSocket.id().replaceFirst("^.*#", ""));
-                    if (this.gameStateHolder == null) {
-                        System.out.println("*** Room Entered. ***");
-                    } else {
-                        System.out.println("*** Room Re-Entered. ***");
-                        this.requestGameState();
-                    }
-                })
-                .on(EventType.GameState.toString(), args -> {
-                    try {
-                        JSONObject obj = new JSONObject((String) args[args.length - 1]);
-                        GameState newState = new GameState(obj);
-                        this.updateState(newState);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        this.exitRoom();
-                    }
-                })
-                .on(Socket.EVENT_DISCONNECT, args -> System.out.println("*** Room Leaved. ***"))
-                .on(Socket.EVENT_CONNECT_ERROR, args -> this.exitRoom())
-                .on(Socket.EVENT_RECONNECT_ERROR, args -> this.exitRoom())
-                .on(Socket.EVENT_RECONNECT_FAILED, args -> this.exitRoom());
-        this.nameSpaceSocket.open();
+        threadLock = new Object();
     }
 
-    static void executeAndWait(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Supplier<Scanner> scannerSupplier) {
-        final ClientGameRoom instance = new ClientGameRoom(nameSpaceSocket, boardDrawerType, scannerSupplier);
+    static void roomIn(Socket nameSpaceSocket, BoardDrawerType boardDrawerType, Supplier<Scanner> scannerSupplier) {
+        Thread roomThread = new Thread(new ClientGameRoom(nameSpaceSocket, boardDrawerType, scannerSupplier));
+        roomThread.start();
         try {
-            synchronized (instance) {
-                instance.wait();
-            }
-            if (instance.boardDrawer != null) {
-                synchronized (instance.boardDrawer) {
-                    instance.boardDrawer.wait();
-                }
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            roomThread.join();
+        } catch (InterruptedException ignored) {
         }
-        instance.nameSpaceSocket.close();
-        while (instance.nameSpaceSocket.connected()) {
+    }
+
+    public void run() {
+        synchronized (this.threadLock) {
+            this.nameSpaceSocket
+                    .on(Socket.EVENT_CONNECT, args -> {
+                        this.uuid = UUID.fromString(this.nameSpaceSocket.id().replaceFirst("^.*#", ""));
+                        if (this.gameStateHolder == null) {
+                            System.out.println("--- room connect and entered. ---");
+                        } else {
+                            System.out.println("--- room reconnected. ---");
+                            this.requestGameState();
+                        }
+                    })
+                    .on(EventType.GameState.toString(), args -> {
+                        try {
+                            JSONObject obj = new JSONObject((String) args[args.length - 1]);
+                            GameState newState = new GameState(obj);
+                            this.updateGameState(newState);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            this.exitRoom(true);
+                        }
+                    })
+                    .on(Socket.EVENT_DISCONNECT, args -> System.out.println("--- room unexpectedly disconnected. ---"))
+                    .on(Socket.EVENT_CONNECT_ERROR, args -> {
+                        System.out.println("--- room connect error occurred. close board drawer. ---");
+                        this.exitRoom(true);
+                    })
+                    .on(Socket.EVENT_RECONNECT_ERROR, args -> {
+                        System.out.println("--- room reconnect error occurred. close board drawer. ---");
+                        this.exitRoom(true);
+                    })
+                    .on(Socket.EVENT_RECONNECT_FAILED, args -> {
+                        System.out.println("--- room reconnect failed. close board drawer. ---");
+                        this.exitRoom(true);
+                    });
+            this.nameSpaceSocket.open();
             try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignore) {
+                this.threadLock.wait();
+                System.out.println("--- room leave and disconnected. ---");
+            } catch (InterruptedException ignored) {
             }
         }
     }
 
-    private void updateState(GameState state) {
+    private synchronized void updateGameState(GameState state) {
         if (this.gameStateHolder == null) {
-            switch (boardDrawerType) {
+            Supplier<Void> onBoardDrawerClosedCallback = () -> {
+                this.exitRoom(false);
+                return null;
+            };
+            switch (this.boardDrawerType) {
                 case GUI:
-                    this.boardDrawer = new GUIBoardDrawer(64, this.nameSpaceSocket.toString(), this::requestSeat);
+                    this.boardDrawer = new GUIBoardDrawer(64, nameSpaceSocket.toString(), this::requestSeat, onBoardDrawerClosedCallback);
+                    break;
                 case CUI:
-                    this.boardDrawer = new ConsoleBoardDrawer(this.scannerSupplier, this::requestSeat);
+                    this.boardDrawer = new ConsoleBoardDrawer(scannerSupplier, this::requestSeat, onBoardDrawerClosedCallback);
+                    break;
             }
             this.gameStateHolder = new GameStateHolder(state);
         } else {
-            this.gameStateHolder.updateFromState(state);
+            this.gameStateHolder.update(state);
         }
 
-        final boolean myTurn =
-                this.gameStateHolder.getCurrentTurn() != null
-                        && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()] != null
-                        && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()].equals(this.uuid);
-        synchronized (this.boardDrawer) {
-            this.boardDrawer.seatStatusUpdated(state.playerUUIDs, state.playerNames, state.seatAvailabilities);
-            this.boardDrawer.boardUpdated(this.gameStateHolder);
-            if (myTurn) {
-                this.boardDrawer.notifyTurn(this.gameStateHolder, (placeableCell) -> {
-                    CellSelect cellSelect = new CellSelect(placeableCell.placePoint[0], placeableCell.placePoint[1]);
-                    try {
-                        this.nameSpaceSocket.emit(
-                                EventType.selectCell.toString(),
-                                cellSelect.toJSONObject().toString(),
-                                (Ack) args -> {
-                                    JSONObject json = new JSONObject((String) args[0]);
-                                    RequestReply requestReply = new RequestReply(json);
-                                    if (!requestReply.success && requestReply.detail != null) {
-                                        System.err.println(requestReply.detail);
-                                        this.requestGameState();
-                                    }
+        final boolean notifyMyTurn = this.gameStateHolder.getCurrentTurn() != null
+                && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()] != null
+                && state.playerUUIDs[this.gameStateHolder.getCurrentTurn().getInt()].equals(this.uuid);
+
+        this.boardDrawer.update(gameStateHolder);
+
+        if (notifyMyTurn) {
+            this.boardDrawer.notifyTurn(this.gameStateHolder, (placeableCell) -> {
+                CellSelect cellSelect = new CellSelect(placeableCell.placePoint[0], placeableCell.placePoint[1]);
+                try {
+                    this.nameSpaceSocket.emit(
+                            EventType.selectCell.toString(),
+                            cellSelect.toJSONObject().toString(),
+                            (Ack) args -> {
+                                JSONObject json = new JSONObject((String) args[0]);
+                                RequestReply requestReply = new RequestReply(json);
+                                if (!requestReply.success && requestReply.detail != null) {
+                                    System.err.println(requestReply.detail);
+                                    this.requestGameState();
                                 }
-                        );
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        }
-
-        synchronized (this) {
-            this.notifyAll();
+                            }
+                    );
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 
     private void requestSeat(SeatRequest seatRequest) {
-        this.nameSpaceSocket.emit(
+        nameSpaceSocket.emit(
                 EventType.seating.toString(),
                 seatRequest.toJSONObject().toString(),
                 (Ack) args -> {
                     JSONObject json = new JSONObject((String) args[0]);
                     RequestReply requestReply = new RequestReply(json);
                     if (requestReply.success) {
-                        this.boardDrawer.onSuccessSeatRequest(seatRequest);
+                        boardDrawer.onSuccessSeatRequest(seatRequest);
                     } else if (requestReply.detail != null) {
                         System.err.println(requestReply.detail);
                     }
@@ -148,12 +154,19 @@ class ClientGameRoom {
     }
 
     private void requestGameState() {
-        this.nameSpaceSocket.emit(EventType.requestGameState.toString());
+        nameSpaceSocket.emit(EventType.requestGameState.toString());
     }
 
-    private void exitRoom() {
-        synchronized (this.boardDrawer) {
-            this.boardDrawer.notifyAll();
+    private synchronized void exitRoom(boolean requireBoardDrawerClosing) {
+        if (this.gameStateHolder != null) {
+            this.gameStateHolder = null;
+            if (this.boardDrawer != null && requireBoardDrawerClosing) {
+                this.boardDrawer.notifyLeavingRoom();
+            }
+            this.boardDrawer = null;
+            synchronized (this.threadLock) {
+                this.threadLock.notify();
+            }
         }
     }
 }

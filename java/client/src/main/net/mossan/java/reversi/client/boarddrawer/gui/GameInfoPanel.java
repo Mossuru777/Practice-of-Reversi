@@ -15,9 +15,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 class GameInfoPanel extends JPanel {
-    private final Supplier<Game> gameSupplier;
+    private final Supplier<@Nullable Game> gameSupplier;
     private final Supplier<Boolean> isMyTurnSupplier;
-    private final Supplier<PlayerType[][]> seatAvailabilitySupplier;
+    private final Supplier<PlayerType[]> currentTurnSeatAvailabilitySupplier;
     private final BiConsumer<DiscType, PlayerType> seatRequestIssuer;
 
     private final JLabel turnLabel = new JLabel();
@@ -30,10 +30,10 @@ class GameInfoPanel extends JPanel {
     private @Nullable ActionListener seatLongestPlaceCPUButtonAction = null;
     private @Nullable ActionListener seatRandomPlaceCPUButtonAction = null;
 
-    GameInfoPanel(Supplier<Game> gameSupplier, Supplier<Boolean> isMyTurnSupplier, Supplier<PlayerType[][]> seatAvailabilitySupplier, Consumer<SeatRequest> seatRequestConsumer) {
+    GameInfoPanel(Supplier<@Nullable Game> gameSupplier, Supplier<Boolean> isMyTurnSupplier, Supplier<PlayerType[]> currentTurnSeatAvailabilitySupplier, Consumer<SeatRequest> seatRequestConsumer) {
         this.gameSupplier = gameSupplier;
         this.isMyTurnSupplier = isMyTurnSupplier;
-        this.seatAvailabilitySupplier = seatAvailabilitySupplier;
+        this.currentTurnSeatAvailabilitySupplier = currentTurnSeatAvailabilitySupplier;
         this.seatRequestIssuer = (currentTurn, playerType) -> {
             if (currentTurn == null) return;
             seatRequestConsumer.accept(new SeatRequest(currentTurn, playerType));
@@ -88,7 +88,7 @@ class GameInfoPanel extends JPanel {
             this.messageLabel.setText("");
         }
 
-        PlayerType[] seatAvailability = currentTurn == null ? new PlayerType[]{} : this.seatAvailabilitySupplier.get()[currentTurn.getInt()];
+        PlayerType[] seatAvailability = this.currentTurnSeatAvailabilitySupplier.get();
 
         if (this.seatMeButtonAction != null) {
             this.seatMeButton.removeActionListener(this.seatMeButtonAction);

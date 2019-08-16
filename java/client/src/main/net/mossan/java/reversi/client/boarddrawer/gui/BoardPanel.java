@@ -3,6 +3,7 @@ package net.mossan.java.reversi.client.boarddrawer.gui;
 import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlaceableCell;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,19 +18,20 @@ class BoardPanel extends JPanel implements MouseListener {
     private static final float PLACEABLE_DISC_DRAW_OPACITY = 0.2f;
 
     private final int cellWidthHeight;
-    private final Supplier<Game> gameSupplier;
+    private final Supplier<@Nullable Game> gameSupplier;
     private final BiConsumer<Integer, Integer> tryPlaceCell;
 
     private final int boardWidthHeight;
     private final int discSize;
     private final int discDrawMarginInCell;
 
-    BoardPanel(int cellWidthHeight, Supplier<Game> gameSupplier, BiConsumer<Integer, Integer> tryPlaceCell) {
+    BoardPanel(int cellWidthHeight, Supplier<@Nullable Game> gameSupplier, BiConsumer<Integer, Integer> tryPlaceCell) {
         this.cellWidthHeight = cellWidthHeight;
         this.gameSupplier = gameSupplier;
         this.tryPlaceCell = tryPlaceCell;
 
         Game drawGame = this.gameSupplier.get();
+        assert drawGame != null;
 
         this.boardWidthHeight = this.cellWidthHeight * drawGame.getBoardRows();
         this.discSize = (int) Math.round(this.cellWidthHeight * DISC_DRAW_RATIO);

@@ -1,8 +1,8 @@
 package net.mossan.java.reversi.client.boarddrawer.gui;
 
 import net.mossan.java.reversi.client.boarddrawer.BoardDrawer;
+import net.mossan.java.reversi.client.model.GameStateHolder;
 import net.mossan.java.reversi.common.message.request.SeatRequest;
-import net.mossan.java.reversi.common.model.DiscType;
 import net.mossan.java.reversi.common.model.Game;
 import net.mossan.java.reversi.common.model.PlaceableCell;
 import net.mossan.java.reversi.common.model.PlayerType;
@@ -12,39 +12,32 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.UUID;
+import java.awt.event.WindowListener;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class GUIBoardDrawer extends JFrame implements BoardDrawer {
+public class GUIBoardDrawer extends BoardDrawer implements WindowListener {
     private final int cellSize;
     private final String windowTitle;
-    private final Consumer<SeatRequest> seatRequestConsumer;
 
     private JFrame window;
     private BoardPanel boardPanel;
     private GameInfoPanel gameInfoPanel;
 
-    private Game drawGame = null;
-    private String[] seatedPlayerNames = null;
-    private PlayerType[][] seatAvailabilities = null;
-    private @Nullable DiscType currentDiscType = null;
     private @Nullable Consumer<PlaceableCell> placeCell = null;
 
-    public GUIBoardDrawer(int cellSize, String windowTitle, Consumer<SeatRequest> seatRequestConsumer) {
+    public GUIBoardDrawer(int cellSize, String windowTitle, Consumer<SeatRequest> seatRequestConsumer, Supplier<Void> onBoardDrawerClosedCallback) {
+        super(seatRequestConsumer, onBoardDrawerClosedCallback);
         assert cellSize > 0 : "cell size must be greater than 0.";
 
         this.cellSize = cellSize;
         this.windowTitle = windowTitle;
-        this.seatRequestConsumer = seatRequestConsumer;
-
-        this.setLayout(null);
     }
 
-    // ObserverEventListener (inherit from BoardDrawer)
+    // Override BoardDrawer Methods
     @Override
-    public void boardUpdated(Game game) {
-        this.drawGame = game;
+    public void update(GameStateHolder gameStateHolder) {
+        super.update(gameStateHolder);
         if (this.window == null) {
             this.createWindow();
         } else {
@@ -53,41 +46,40 @@ public class GUIBoardDrawer extends JFrame implements BoardDrawer {
         }
     }
 
+    @Override
+    public void onSuccessSeatRequest(SeatRequest seatRequest) {
+        super.onSuccessSeatRequest(seatRequest);
+        this.boardPanel.repaint();
+        this.gameInfoPanel.updateState();
+    }
+
+    @Override
+    public void notifyLeavingRoom() {
+        if (this.window != null) {
+            this.boardPanel = null;
+            this.gameInfoPanel = null;
+            this.window.dispose();
+            this.window = null;
+        }
+        this.onBoardDrawerClosedCallback.get();
+    }
+
     // PlayerEventListener (inherit from BoardDrawer)
     @Override
     public void notifyTurn(Game game, Consumer<PlaceableCell> placeCell) {
-        this.drawGame = game;
         this.placeCell = placeCell;
         this.boardPanel.repaint();
         this.gameInfoPanel.updateState();
     }
 
-    // RoomEventListener (inherit from BoardDrawer)
-    @Override
-    public void onSuccessSeatRequest(SeatRequest seatRequest) {
-        if (seatRequest.playerType == PlayerType.NetworkPlayer) {
-            this.currentDiscType = seatRequest.discType;
-        }
-        this.boardPanel.repaint();
-        this.gameInfoPanel.updateState();
-    }
-
-    @Override
-    public void seatStatusUpdated(UUID[] seatedPlayerUUIDs, String[] seatedPlayerNames, PlayerType[][] seatAvailabilities) {
-        this.seatedPlayerNames = seatedPlayerNames;
-        this.seatAvailabilities = seatAvailabilities;
-        if (this.window != null) {
-            this.boardPanel.repaint();
-            this.gameInfoPanel.updateState();
-        }
-    }
-
     private void createWindow() {
         assert this.window == null;
-        assert this.drawGame != null;
+
+        GameStateHolder gameStateHolder = this.gameStateHolderWeakReference.get();
+        assert gameStateHolder != null;
 
         // Calculate sizes
-        final int boardWidthHeight = this.cellSize * this.drawGame.getBoardRows();
+        final int boardWidthHeight = this.cellSize * gameStateHolder.getBoardRows();
         final int boardMargin = (int) (this.cellSize * 0.55);
         final int gameInfoPanelWidth = (int) (this.cellSize * 0.75 * 5);
         final int windowWidth = 2 * boardMargin + boardWidthHeight + gameInfoPanelWidth;
@@ -112,9 +104,19 @@ public class GUIBoardDrawer extends JFrame implements BoardDrawer {
         this.window.pack();
 
         // Create Supplier
-        Supplier<Game> gameSupplier = () -> this.drawGame;
-        Supplier<Boolean> isMyTurnSupplier = () -> this.drawGame.getCurrentTurn() == this.currentDiscType;
-        Supplier<PlayerType[][]> seatAvailabilitySupplier = () -> this.seatAvailabilities;
+        Supplier<@Nullable Game> gameSupplier = () -> this.gameStateHolderWeakReference.get();
+        Supplier<Boolean> isMyTurnSupplier = () -> {
+            GameStateHolder gsh = this.gameStateHolderWeakReference.get();
+            return gsh != null && gsh.getCurrentTurn() != null && gsh.getCurrentTurn() == this.myDiscType;
+        };
+        Supplier<PlayerType[]> currentTurnSeatAvailabilitySupplier = () -> {
+            GameStateHolder gsh = this.gameStateHolderWeakReference.get();
+            if (gsh == null || gsh.getCurrentTurn() == null) {
+                return new PlayerType[]{};
+            } else {
+                return gsh.seatAvailabilities[gsh.getCurrentTurn().getInt()];
+            }
+        };
 
         // Add BoardPanel
         this.boardPanel = new BoardPanel(this.cellSize, gameSupplier, this::tryPlaceCell);
@@ -122,26 +124,68 @@ public class GUIBoardDrawer extends JFrame implements BoardDrawer {
         this.window.getContentPane().add(this.boardPanel);
 
         // Add GameInfoPanel
-        this.gameInfoPanel = new GameInfoPanel(gameSupplier, isMyTurnSupplier, seatAvailabilitySupplier, this.seatRequestConsumer);
+        this.gameInfoPanel = new GameInfoPanel(gameSupplier, isMyTurnSupplier, currentTurnSeatAvailabilitySupplier, this.seatRequestConsumer);
         this.gameInfoPanel.setBounds(2 * boardMargin + boardWidthHeight, 0, gameInfoPanelWidth, windowHeight);
         this.window.getContentPane().add(this.gameInfoPanel);
+
+        // Add Window Events
+        this.window.addWindowListener(this);
 
         this.window.setVisible(true);
     }
 
     private void tryPlaceCell(int horizontal, int vertical) {
-        DiscType currentTurn = this.drawGame.getCurrentTurn();
-        if (this.placeCell == null || this.drawGame == null || currentTurn == null || currentTurn != this.currentDiscType)
+        @Nullable GameStateHolder gameStateHolder = this.gameStateHolderWeakReference.get();
+        if (this.placeCell == null || gameStateHolder == null
+                || gameStateHolder.getCurrentTurn() == null || gameStateHolder.getCurrentTurn() != this.myDiscType
+        ) {
             return;
+        }
 
-        this.drawGame.getPlaceableCellsList(this.drawGame.getCurrentTurn())
+        gameStateHolder.getPlaceableCellsList(gameStateHolder.getCurrentTurn())
                 .stream()
                 .filter(p -> p.placePoint[0] == horizontal && p.placePoint[1] == vertical)
                 .findFirst()
                 .ifPresent(p -> {
-                    this.placeCell.accept(p);
-                    this.placeCell = null;
+                    placeCell.accept(p);
+                    placeCell = null;
                 });
+    }
+
+    // WindowListener
+    @Override
+    public void windowOpened(WindowEvent e) {
+        // ignore
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        this.notifyLeavingRoom();
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        // ignore
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+        // ignore
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+        // ignore
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+        // ignore
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+        // ignore
     }
 }
 
