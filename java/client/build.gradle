@@ -3,6 +3,7 @@ dependencies {
 }
 
 mainClassName = 'net.mossan.java.reversi.client.ReversiClient'
+archivesBaseName = 'ReversiClient'
 
 jar {
     manifest {

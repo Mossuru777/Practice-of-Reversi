@@ -51,4 +51,13 @@ configure([project(':server'), project(':client')]) {
         compile project(':common')
         compile 'args4j:args4j:2.33'
     }
+
+    jar {
+        archiveFileName = "${archiveBaseName}.${archiveExtension}"
+    }
+
+    shadowJar {
+        classifier = null
+        version = null
+    }
 }

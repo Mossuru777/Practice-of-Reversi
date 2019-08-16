@@ -4,6 +4,7 @@ dependencies {
 }
 
 mainClassName = 'net.mossan.java.reversi.server.ReversiServer'
+archivesBaseName = 'ReversiServer'
 
 jar {
     manifest {
