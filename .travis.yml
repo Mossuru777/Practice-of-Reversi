@@ -3,7 +3,7 @@ jdk:
   - openjdk11
 
 script:
-  - cd java && ./gradlew shadowJar
+  - cd java && chmod +x ./gradlew && ./gradlew shadowJar
 
 deploy:
   provider: releases
