@@ -3,15 +3,15 @@ jdk:
   - openjdk11
 
 script:
-  - cd java && chmod +x ./gradlew && ./gradlew shadowJar
+  - cd $TRAVIS_BUILD_DIR/java && chmod +x ./gradlew && ./gradlew shadowJar
 
 deploy:
   provider: releases
   api_key:
     secure: F4o4dA7pWjhrpd1LCiCHkxkLsUKaUBeSZe9DUfNUQUQcECMbgFW+eKhnm/nQmipNIQDzAor18cjc8CbLRW3KCHvR2oPSnUZ0v+sTMF38opNquurI0YgWw5uryRC8IDaMqJ2GeGiaerkVk5ITUx5W2x68qIkyfXRBEp+73i/7QC9h2Mq3fUugpegPTEIqnkt4voOnNN7Lf7SQmXEpQdt1RA+1qTbF+sf7BaudDy/ZLvLCoYaR999Lw4Dw3j2ms1EkQxoaDcwryniNaYydaiFO+IyJQmmO80OeyZA2jZE1HVumKckRgrd5hX9SVHeDQyCWo9e2SA9ebxSUQM9NysX3zeiF1KBuvgbDW/AQKBuMdT7okwTcAXU8DJ5psshrFgQijSN/a5uOM5ZgcZnQP5j+T9sPARnEsUPHKowtLsUoV761Qe2iQAzotpyKaEz7rYdRJ/lQ/tqnQmO8coVxzNvUY3/St2HO1wcGXtSax1Vn2ftRZLJFJ7E+A054biorXcyP4BUsnDSSsesA8QKKQ+K1DubqN+q+k5gfkKF+4i+Lwr4Qm0iwzzQSLBWXPs0Y+ftS/8vKBhrNJG1ISlnKG4IITVkMqKOePx+OqY96vQDbkQfaG5bqIsvYKvGOpCFHyVBJZDGJhEBAMv560IsMQoTBbKY/rJ4YqdlDOz3svas3x2s=
   file:
-    - java/server/build/libs/ReversiServer.jar
-    - java/client/build/libs/ReversiClient.jar
+    - $TRAVIS_BUILD_DIR/java/server/build/libs/ReversiServer.jar
+    - $TRAVIS_BUILD_DIR/java/client/build/libs/ReversiClient.jar
   skip_cleanup: true
   on:
     repo: Mossuru777/Practice-of-Reversi
